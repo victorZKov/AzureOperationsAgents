@@ -3,11 +3,12 @@
 (English, keep scrolling)
 
 ## Descripción
-Azure Operations Agents es una solución que proporciona tres agentes especializados para automatizar, monitorear y clasificar operaciones en Azure:
+Azure Operations Agents es una solución que proporciona cuatro agentes especializados para automatizar, monitorear, clasificar y ejecutar operaciones en Azure:
 
 1. **Agent0ScriptingAPI**: Genera scripts de automatización para recursos de Azure y Azure DevOps
 2. **Agent1MonitoringFunction**: Monitorea recursos de Azure y envía notificaciones a través de Azure Service Bus
 3. **Agent2EventClassifier**: Clasifica eventos de Azure usando inteligencia artificial
+4. **Agent3Runner**: Ejecuta scripts generados y devuelve los resultados
 
 ## Arquitectura
 La solución está implementada siguiendo los principios de Clean Architecture y consta de las siguientes capas:
@@ -58,6 +59,19 @@ Función de Azure que clasifica eventos usando IA:
 - Envío de resultados a Service Bus
 - Análisis de confianza y razonamiento
 
+### Agent3Runner
+Función de Azure que ejecuta scripts:
+- Ejecución de scripts generados
+- Seguimiento de estado y resultados
+- Almacenamiento de resultados
+- Notificaciones de finalización
+
+#### Características
+- Ejecución asíncrona de scripts
+- Almacenamiento en Azure Table Storage
+- Notificaciones a través de Service Bus
+- Seguimiento de estado y duración
+
 ## Requisitos
 - .NET 8.0
 - Azure Subscription
@@ -96,6 +110,12 @@ Función de Azure que clasifica eventos usando IA:
 3. Desplegar Agent2EventClassifier:
    ```bash
    cd AzureOperationsAgents.Agent2EventClassifier
+   dotnet publish -c Release
+   ```
+
+4. Desplegar Agent3Runner:
+   ```bash
+   cd AzureOperationsAgents.Agent3Runner
    dotnet publish -c Release
    ```
 
@@ -154,6 +174,34 @@ La función procesa eventos del topic "events-to-classify" y envía las clasific
 }
 ```
 
+### Agent3Runner
+La función procesa solicitudes de ejecución del topic "scripts-to-execute" y envía los resultados al topic "script-execution-results":
+
+```json
+// Solicitud de ejecución
+{
+    "scriptId": "script-123",
+    "parameters": {
+        "resourceGroup": "my-rg",
+        "vmName": "my-vm"
+    }
+}
+
+// Resultado de la ejecución
+{
+    "id": "execution-456",
+    "scriptId": "script-123",
+    "executionTime": "2024-03-20T10:00:00Z",
+    "status": "Completed",
+    "output": "Script ejecutado exitosamente",
+    "duration": "00:00:05",
+    "parameters": {
+        "resourceGroup": "my-rg",
+        "vmName": "my-vm"
+    }
+}
+```
+
 ## Contribución
 1. Fork el repositorio
 2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -169,11 +217,12 @@ Este proyecto está licenciado bajo la Licencia MIT.
 # Azure Operations Agents
 
 ## Description
-Azure Operations Agents is a solution that provides three specialized agents for automating, monitoring, and classifying Azure operations:
+Azure Operations Agents is a solution that provides four specialized agents for automating, monitoring, classifying, and executing Azure operations:
 
 1. **Agent0ScriptingAPI**: Generates automation scripts for Azure and Azure DevOps resources
 2. **Agent1MonitoringFunction**: Monitors Azure resources and sends notifications via Azure Service Bus
 3. **Agent2EventClassifier**: Classifies Azure events using artificial intelligence
+4. **Agent3Runner**: Executes generated scripts and returns results
 
 ## Architecture
 The solution is implemented following Clean Architecture principles and consists of the following layers:
@@ -224,6 +273,19 @@ Azure Function that classifies events using AI:
 - Results sent to Service Bus
 - Confidence and reasoning analysis
 
+### Agent3Runner
+Azure Function that executes scripts:
+- Execution of generated scripts
+- Status and result tracking
+- Result storage
+- Completion notifications
+
+#### Features
+- Asynchronous script execution
+- Storage in Azure Table Storage
+- Notifications via Service Bus
+- Status and duration tracking
+
 ## Requirements
 - .NET 8.0
 - Azure Subscription
@@ -262,6 +324,12 @@ Azure Function that classifies events using AI:
 3. Deploy Agent2EventClassifier:
    ```bash
    cd AzureOperationsAgents.Agent2EventClassifier
+   dotnet publish -c Release
+   ```
+
+4. Deploy Agent3Runner:
+   ```bash
+   cd AzureOperationsAgents.Agent3Runner
    dotnet publish -c Release
    ```
 
@@ -317,6 +385,34 @@ The function processes events from the "events-to-classify" topic and sends clas
         "Check performance metrics",
         "Monitor system logs"
     ]
+}
+```
+
+### Agent3Runner
+The function processes execution requests from the "scripts-to-execute" topic and sends results to the "script-execution-results" topic:
+
+```json
+// Execution request
+{
+    "scriptId": "script-123",
+    "parameters": {
+        "resourceGroup": "my-rg",
+        "vmName": "my-vm"
+    }
+}
+
+// Execution result
+{
+    "id": "execution-456",
+    "scriptId": "script-123",
+    "executionTime": "2024-03-20T10:00:00Z",
+    "status": "Completed",
+    "output": "Script executed successfully",
+    "duration": "00:00:05",
+    "parameters": {
+        "resourceGroup": "my-rg",
+        "vmName": "my-vm"
+    }
 }
 ```
 

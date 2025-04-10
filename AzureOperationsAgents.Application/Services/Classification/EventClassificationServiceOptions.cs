@@ -1,4 +1,4 @@
-namespace AzureOperationsAgents.Application.Services;
+namespace AzureOperationsAgents.Application.Services.Classification;
 
 public class EventClassificationServiceOptions
 {

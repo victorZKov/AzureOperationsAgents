@@ -1,8 +1,10 @@
 using Azure.AI.OpenAI;
 using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
-namespace AzureOperationsAgents.Application.Services;
+namespace AzureOperationsAgents.Application.Services.Classification;
 
 public class EventClassificationService : IEventClassificationService
 {
@@ -12,13 +14,14 @@ public class EventClassificationService : IEventClassificationService
 
     public EventClassificationService(
         OpenAIClient openAIClient,
-        string deploymentName,
+        IOptions<EventClassificationServiceOptions> options,
         ILogger<EventClassificationService> logger)
     {
         _openAIClient = openAIClient;
-        _deploymentName = deploymentName;
+        _deploymentName = options.Value.DeploymentName;
         _logger = logger;
     }
+    
 
     public async Task<EventClassification> ClassifyEventAsync(EventClassification eventData)
     {
@@ -26,20 +29,22 @@ public class EventClassificationService : IEventClassificationService
         {
             var prompt = GenerateClassificationPrompt(eventData);
             
-            var chatCompletions = await _openAIClient.GetChatCompletionsAsync(
-                _deploymentName,
-                new ChatCompletionsOptions
+            
+
+            var options =  new ChatCompletionsOptions
                 {
                     Messages =
                     {
-                        new ChatMessage(ChatRole.System, "Eres un experto en clasificación de eventos de Azure. Analiza el evento y proporciona una clasificación detallada."),
-                        new ChatMessage(ChatRole.User, prompt)
+                        new ChatRequestSystemMessage("Eres un experto en clasificación de eventos de Azure. Analiza el evento y proporciona una clasificación detallada."),
+                        new ChatRequestSystemMessage(prompt)
                     },
                     Temperature = 0.7f,
                     MaxTokens = 800
-                });
+                };
 
-            var response = chatCompletions.Value.Choices[0].Message.Content;
+                var chatCompletions = await _openAIClient.GetChatCompletionsAsync(options);
+                var response = chatCompletions.Value.Choices[0].Message.Content;
+
             return ParseClassificationResponse(eventData, response);
         }
         catch (Exception ex)
