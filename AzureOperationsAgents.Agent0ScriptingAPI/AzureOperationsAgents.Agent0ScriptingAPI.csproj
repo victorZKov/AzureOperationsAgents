@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" Version="1.0.0-beta.17" />
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
+    <PackageReference Include="Azure.Identity" Version="1.11.2" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.60.4" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\AzureOperationsAgents.Core\AzureOperationsAgents.Core.csproj" />
+    <ProjectReference Include="..\AzureOperationsAgents.Application\AzureOperationsAgents.Application.csproj" />
+    <ProjectReference Include="..\AzureOperationsAgents.Infrastructure\AzureOperationsAgents.Infrastructure.csproj" />
+  </ItemGroup>
+</Project> 
