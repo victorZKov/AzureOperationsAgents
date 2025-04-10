@@ -1,105 +1,227 @@
-# Azure Scripting API
+# Azure Operations Agents
 
-API inteligente para la generación de scripts de automatización para Azure y Azure DevOps.
+(English, keep scrolling)
 
-## 🚀 Características
+## Descripción
+Azure Operations Agents es una solución que proporciona dos agentes especializados para automatizar y monitorear operaciones en Azure:
 
-- Generación de scripts para Azure CLI y Azure DevOps CLI
-- Soporte para PowerShell y Bash
-- Validación automática de scripts
-- Refinamiento de scripts basado en feedback
-- Almacenamiento y recuperación de scripts similares
-- Autenticación segura con Azure AD
-- Integración con Azure OpenAI Service
+1. **Agent0ScriptingAPI**: Genera scripts de automatización para recursos de Azure y Azure DevOps
+2. **Agent1MonitoringFunction**: Monitorea recursos de Azure y envía notificaciones a través de Azure Service Bus
 
-## 🛠️ Tecnologías
+## Arquitectura
+La solución está implementada siguiendo los principios de Clean Architecture y consta de las siguientes capas:
 
-- .NET 9 (Isolated Process Model)
-- Azure PostgreSQL Flexible Server
-- Azure OpenAI Service
-- Azure Active Directory
-- Clean Architecture
+- **Core**: Contiene las entidades y interfaces base
+- **Application**: Implementa la lógica de negocio
+- **Infrastructure**: Proporciona implementaciones concretas para acceso a datos y servicios externos
+- **Agents**: Contiene los agentes específicos que exponen la funcionalidad
 
-## 📋 Requisitos Previos
+## Agentes
 
-- .NET 9 SDK
+### Agent0ScriptingAPI
+API REST que genera scripts de automatización para:
+- Recursos de Azure
+- Azure DevOps
+- Pipelines
+- Repositorios
+- Work Items
+
+#### Características
+- Generación de scripts usando OpenAI
+- Almacenamiento en Azure Table Storage
+- Autenticación con Azure AD
+- Documentación con Swagger
+
+### Agent1MonitoringFunction
+Función de Azure que monitorea:
+- Recursos de Azure
+- Log Analytics
+- Métricas y logs
+
+#### Características
+- Consultas a Log Analytics
+- Notificaciones a través de Azure Service Bus
+- Programación de monitoreo con Timer Trigger
+- Procesamiento de eventos con Service Bus Trigger
+
+## Requisitos
+- .NET 9.0
 - Azure Subscription
-- Azure AD Tenant
-- Azure PostgreSQL Flexible Server
 - Azure OpenAI Service
+- Azure Storage Account
+- Azure Service Bus
+- Azure Log Analytics Workspace
 
-## ⚙️ Configuración
+## Configuración
+1. Clonar el repositorio
+2. Configurar las variables de entorno:
+   ```
+   AZURE_OPENAI_ENDPOINT=your_endpoint
+   AZURE_OPENAI_KEY=your_key
+   AZURE_STORAGE_CONNECTION_STRING=your_connection_string
+   AZURE_SERVICE_BUS_CONNECTION_STRING=your_connection_string
+   AZURE_TENANT_ID=your_tenant_id
+   AZURE_CLIENT_ID=your_client_id
+   AZURE_CLIENT_SECRET=your_client_secret
+   ```
 
-1. Clona el repositorio
-2. Actualiza las configuraciones en `appsettings.json`:
-   - Cadena de conexión de PostgreSQL
-   - Configuración de Azure AD
-   - Endpoint y API Key de Azure OpenAI
+## Despliegue
+1. Desplegar Agent0ScriptingAPI:
+   ```bash
+   cd AzureOperationsAgents.Agent0ScriptingAPI
+   dotnet publish -c Release
+   ```
 
-3. Ejecuta las migraciones de la base de datos:
+2. Desplegar Agent1MonitoringFunction:
+   ```bash
+   cd AzureOperationsAgents.Agent1MonitoringFunction
+   dotnet publish -c Release
+   ```
+
+## Uso
+### Agent0ScriptingAPI
 ```bash
-dotnet ef database update
-```
-
-4. Ejecuta la aplicación:
-```bash
-dotnet run --project AzureScriptingAPI.API
-```
-
-## 🔒 Autenticación
-
-La API utiliza Azure AD para la autenticación. Los clientes necesitan:
-1. Registrar una aplicación en Azure AD
-2. Obtener credenciales de cliente (Client ID y Client Secret)
-3. Usar el flujo de OAuth2 Client Credentials para obtener tokens
-
-## 📝 Uso de la API
-
-### Generar un Script
-```http
-POST /api/scripts
-Content-Type: application/json
-Authorization: Bearer {token}
-
+# Generar script para un recurso de Azure
+POST /api/scripts/generate
 {
-    "prompt": "Crear un grupo de recursos en Azure",
-    "preferredType": "PowerShell"
+    "resourceType": "Azure",
+    "resourceId": "subscriptions/{sub-id}/resourceGroups/{rg-name}/providers/Microsoft.Compute/virtualMachines/{vm-name}",
+    "operation": "start"
+}
+
+# Generar script para Azure DevOps
+POST /api/scripts/generate
+{
+    "resourceType": "AzureDevOps",
+    "organization": "your-org",
+    "project": "your-project",
+    "operation": "create-pipeline"
 }
 ```
 
-### Validar un Script
-```http
-POST /api/scripts/{id}/validate
-Authorization: Bearer {token}
-```
+### Agent1MonitoringFunction
+La función se ejecuta automáticamente según la programación configurada y envía notificaciones a través de Service Bus cuando se detectan eventos importantes.
 
-### Refinar un Script
-```http
-POST /api/scripts/{id}/refine
-Content-Type: application/json
-Authorization: Bearer {token}
-
-{
-    "feedback": "Agregar manejo de errores"
-}
-```
-
-## 📚 Estructura del Proyecto
-
-- **AzureScriptingAPI.Core**: Modelos de dominio e interfaces
-- **AzureScriptingAPI.Infrastructure**: Acceso a datos y servicios externos
-- **AzureScriptingAPI.Application**: Lógica de negocio
-- **AzureScriptingAPI.API**: API REST
-- **AzureScriptingAPI.Tests**: Pruebas unitarias e integración
-
-## 🤝 Contribución
-
-1. Fork el proyecto
-2. Crea una rama para tu feature (`git checkout -b feature/AmazingFeature`)
+## Contribución
+1. Fork el repositorio
+2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
 3. Commit tus cambios (`git commit -m 'Add some AmazingFeature'`)
 4. Push a la rama (`git push origin feature/AmazingFeature`)
-5. Abre un Pull Request
+5. Abrir un Pull Request
 
-## 📄 Licencia
+## Licencia
+Este proyecto está licenciado bajo la Licencia MIT.
 
-Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles. 
+---
+
+# Azure Operations Agents
+
+## Description
+Azure Operations Agents is a solution that provides two specialized agents for automating and monitoring Azure operations:
+
+1. **Agent0ScriptingAPI**: Generates automation scripts for Azure and Azure DevOps resources
+2. **Agent1MonitoringFunction**: Monitors Azure resources and sends notifications via Azure Service Bus
+
+## Architecture
+The solution is implemented following Clean Architecture principles and consists of the following layers:
+
+- **Core**: Contains base entities and interfaces
+- **Application**: Implements business logic
+- **Infrastructure**: Provides concrete implementations for data access and external services
+- **Agents**: Contains specific agents that expose functionality
+
+## Agents
+
+### Agent0ScriptingAPI
+REST API that generates automation scripts for:
+- Azure Resources
+- Azure DevOps
+- Pipelines
+- Repositories
+- Work Items
+
+#### Features
+- Script generation using OpenAI
+- Storage in Azure Table Storage
+- Authentication with Azure AD
+- Documentation with Swagger
+
+### Agent1MonitoringFunction
+Azure Function that monitors:
+- Azure Resources
+- Log Analytics
+- Metrics and logs
+
+#### Features
+- Log Analytics queries
+- Notifications via Azure Service Bus
+- Monitoring scheduling with Timer Trigger
+- Event processing with Service Bus Trigger
+
+## Requirements
+- .NET 9.0
+- Azure Subscription
+- Azure OpenAI Service
+- Azure Storage Account
+- Azure Service Bus
+- Azure Log Analytics Workspace
+
+## Setup
+1. Clone the repository
+2. Configure environment variables:
+   ```
+   AZURE_OPENAI_ENDPOINT=your_endpoint
+   AZURE_OPENAI_KEY=your_key
+   AZURE_STORAGE_CONNECTION_STRING=your_connection_string
+   AZURE_SERVICE_BUS_CONNECTION_STRING=your_connection_string
+   AZURE_TENANT_ID=your_tenant_id
+   AZURE_CLIENT_ID=your_client_id
+   AZURE_CLIENT_SECRET=your_client_secret
+   ```
+
+## Deployment
+1. Deploy Agent0ScriptingAPI:
+   ```bash
+   cd AzureOperationsAgents.Agent0ScriptingAPI
+   dotnet publish -c Release
+   ```
+
+2. Deploy Agent1MonitoringFunction:
+   ```bash
+   cd AzureOperationsAgents.Agent1MonitoringFunction
+   dotnet publish -c Release
+   ```
+
+## Usage
+### Agent0ScriptingAPI
+```bash
+# Generate script for an Azure resource
+POST /api/scripts/generate
+{
+    "resourceType": "Azure",
+    "resourceId": "subscriptions/{sub-id}/resourceGroups/{rg-name}/providers/Microsoft.Compute/virtualMachines/{vm-name}",
+    "operation": "start"
+}
+
+# Generate script for Azure DevOps
+POST /api/scripts/generate
+{
+    "resourceType": "AzureDevOps",
+    "organization": "your-org",
+    "project": "your-project",
+    "operation": "create-pipeline"
+}
+```
+
+### Agent1MonitoringFunction
+The function runs automatically according to the configured schedule and sends notifications through Service Bus when important events are detected.
+
+## Contributing
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+## License
+This project is licensed under the MIT License. 
