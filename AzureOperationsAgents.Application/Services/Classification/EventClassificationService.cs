@@ -1,6 +1,8 @@
 using Azure.AI.OpenAI;
 using AzureOperationsAgents.Core.Interfaces;
+using AzureOperationsAgents.Core.Interfaces.Classification;
 using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Classification;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 

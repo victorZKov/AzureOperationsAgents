@@ -1,6 +1,8 @@
 using Azure.AI.OpenAI;
 using AzureOperationsAgents.Application.Services;
+using AzureOperationsAgents.Application.Services.Classification;
 using AzureOperationsAgents.Core.Interfaces;
+using AzureOperationsAgents.Core.Interfaces.Classification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 

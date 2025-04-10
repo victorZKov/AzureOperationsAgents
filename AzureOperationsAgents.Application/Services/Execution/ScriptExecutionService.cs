@@ -1,9 +1,9 @@
 using Azure.Data.Tables;
-using AzureOperationsAgents.Core.Interfaces;
-using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Interfaces.Execution;
+using AzureOperationsAgents.Core.Models.Execution;
 using Microsoft.Extensions.Logging;
 
-namespace AzureOperationsAgents.Application.Services;
+namespace AzureOperationsAgents.Application.Services.Execution;
 
 public class ScriptExecutionService : IScriptExecutionService
 {

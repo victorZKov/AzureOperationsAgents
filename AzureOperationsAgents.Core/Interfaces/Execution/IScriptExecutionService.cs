@@ -1,6 +1,6 @@
-using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Execution;
 
-namespace AzureOperationsAgents.Core.Interfaces;
+namespace AzureOperationsAgents.Core.Interfaces.Execution;
 
 public interface IScriptExecutionService
 {

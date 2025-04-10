@@ -1,9 +1,11 @@
 using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Models;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.ServiceBus;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using AzureOperationsAgents.Core.Interfaces.Execution;
+using AzureOperationsAgents.Core.Models.Execution;
 
 namespace AzureOperationsAgents.Agent3Runner;
 

@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace AzureOperationsAgents.Core.Models;
+namespace AzureOperationsAgents.Core.Models.Execution;
 
 public class ScriptExecution
 {

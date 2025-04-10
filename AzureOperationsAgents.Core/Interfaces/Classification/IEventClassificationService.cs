@@ -1,6 +1,6 @@
-using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Classification;
 
-namespace AzureOperationsAgents.Core.Interfaces;
+namespace AzureOperationsAgents.Core.Interfaces.Classification;
 
 public interface IEventClassificationService
 {
