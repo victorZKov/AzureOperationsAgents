@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AzureOperationsAgent.Agent4Auditing": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7150",
+      "launchBrowser": false
+    }
+  }
+}
