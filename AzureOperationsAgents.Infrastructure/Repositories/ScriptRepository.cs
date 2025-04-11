@@ -5,7 +5,6 @@ using Azure;
 using Azure.Data.Tables;
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Core.Models.Scripting;
-using Microsoft.Extensions.Configuration;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories;
 
@@ -13,10 +12,9 @@ public class ScriptRepository : IScriptRepository
 {
     private readonly TableClient _tableClient;
 
-    public ScriptRepository(IConfiguration config)
+    public ScriptRepository(string connectionString)
     {
-        var connection = config["AzureWebJobsStorage"];
-        _tableClient = new TableClient(connection, "Scripts");
+        _tableClient = new TableClient(connectionString, "Scripts");
         _tableClient.CreateIfNotExists();
     }
 
