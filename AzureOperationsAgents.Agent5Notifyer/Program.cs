@@ -10,4 +10,7 @@ builder.ConfigureFunctionsWebApplication();
 //     .AddApplicationInsightsTelemetryWorkerService()
 //     .ConfigureFunctionsApplicationInsights();
 
+// Added required classes to the IoC container for the auditing service
+builder.Services.AddScoped<AuditEventService>();
+
 builder.Build().Run();

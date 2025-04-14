@@ -27,4 +27,12 @@
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext"/>
     </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.19.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\AzureOperationsAgents.Application\AzureOperationsAgents.Application.csproj" />
+        <ProjectReference Include="..\AzureOperationsAgents.Infrastructure\AzureOperationsAgents.Infrastructure.csproj" />
+    </ItemGroup>
 </Project>
