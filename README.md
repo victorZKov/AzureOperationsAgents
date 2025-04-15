@@ -10,7 +10,7 @@ Azure Operations Agents es una solución que proporciona cuatro agentes especial
 3. **Agent2EventClassifier**: Clasifica eventos de Azure usando inteligencia artificial
 4. **Agent3Runner**: Ejecuta scripts generados y devuelve los resultados
 5. **Agent4Auditing**: Registra eventos de auditoría
-6. **Agent5Notifyer**: Envía notificaciones
+6. **Agent5Notifier**: Envía notificaciones
 7. **Agent6Decision**: Orquesta decisiones
 8. **Agent7Learning**: Aprende de eventos pasados
 
@@ -86,7 +86,7 @@ Función de Azure que registra eventos de auditoría:
 - Integración con SignalR
 - Almacenamiento en Azure Table Storage
 
-### Agent5Notifyer
+### Agent5Notifier
 Función de Azure que envía notificaciones:
 - Procesa solicitudes de notificación
 - Envía notificaciones por correo electrónico, SMS o notificaciones push
@@ -160,6 +160,30 @@ Función de Azure que aprende de eventos pasados:
 4. Desplegar Agent3Runner:
    ```bash
    cd AzureOperationsAgents.Agent3Runner
+   dotnet publish -c Release
+   ```
+
+5. Desplegar Agent4Auditing:
+   ```bash
+   cd AzureOperationsAgents.Agent4Auditing
+   dotnet publish -c Release
+   ```
+
+6. Desplegar Agent5Notifier:
+   ```bash
+   cd AzureOperationsAgents.Agent5Notifier
+   dotnet publish -c Release
+   ```
+
+7. Desplegar Agent6Decision:
+   ```bash
+   cd AzureOperationsAgents.Agent6Decision
+   dotnet publish -c Release
+   ```
+
+8. Desplegar Agent7Learning:
+   ```bash
+   cd AzureOperationsAgents.Agent7Learning
    dotnet publish -c Release
    ```
 
@@ -246,6 +270,18 @@ La función procesa solicitudes de ejecución del topic "scripts-to-execute" y e
 }
 ```
 
+### Agent4Auditing
+La función registra eventos de auditoría en tiempo real y se integra con SignalR para actualizaciones en vivo.
+
+### Agent5Notifier
+La función procesa solicitudes de notificación y envía notificaciones por correo electrónico, SMS o notificaciones push.
+
+### Agent6Decision
+La función orquesta flujos de trabajo de toma de decisiones e integra datos y acciones de otros agentes.
+
+### Agent7Learning
+La función registra experiencias de mensajes de Service Bus y proporciona recomendaciones basadas en experiencias registradas.
+
 ## Documentación de Terraform
 
 El proyecto incluye scripts de Terraform para aprovisionar los recursos de Azure necesarios para los agentes. Estos scripts se encuentran en el directorio `terraform/` y están organizados de la siguiente manera:
@@ -324,7 +360,7 @@ Azure Operations Agents is a solution that provides four specialized agents for 
 3. **Agent2EventClassifier**: Classifies Azure events using artificial intelligence
 4. **Agent3Runner**: Executes generated scripts and returns results
 5. **Agent4Auditing**: Logs audit events
-6. **Agent5Notifyer**: Sends notifications
+6. **Agent5Notifier**: Sends notifications
 7. **Agent6Decision**: Orchestrates decisions
 8. **Agent7Learning**: Learns from past events
 
@@ -400,7 +436,7 @@ Azure Function that logs audit events:
 - Integration with SignalR
 - Storage in Azure Table Storage
 
-### Agent5Notifyer
+### Agent5Notifier
 Azure Function that sends notifications:
 - Processes notification requests
 - Sends notifications via email, SMS, or push notifications
@@ -474,6 +510,30 @@ Azure Function that learns from past events:
 4. Deploy Agent3Runner:
    ```bash
    cd AzureOperationsAgents.Agent3Runner
+   dotnet publish -c Release
+   ```
+
+5. Deploy Agent4Auditing:
+   ```bash
+   cd AzureOperationsAgents.Agent4Auditing
+   dotnet publish -c Release
+   ```
+
+6. Deploy Agent5Notifier:
+   ```bash
+   cd AzureOperationsAgents.Agent5Notifier
+   dotnet publish -c Release
+   ```
+
+7. Deploy Agent6Decision:
+   ```bash
+   cd AzureOperationsAgents.Agent6Decision
+   dotnet publish -c Release
+   ```
+
+8. Deploy Agent7Learning:
+   ```bash
+   cd AzureOperationsAgents.Agent7Learning
    dotnet publish -c Release
    ```
 
@@ -560,6 +620,18 @@ The function processes execution requests from the "scripts-to-execute" topic an
 }
 ```
 
+### Agent4Auditing
+The function logs audit events in real-time and integrates with SignalR for live updates.
+
+### Agent5Notifier
+The function processes notification requests and sends notifications via email, SMS, or push notifications.
+
+### Agent6Decision
+The function orchestrates decision-making workflows and integrates data and actions from other agents.
+
+### Agent7Learning
+The function logs experiences from Service Bus messages and provides recommendations based on logged experiences.
+
 ## Terraform Documentation
 
 The project includes Terraform scripts for provisioning Azure resources required by the agents. These scripts are located in the `terraform/` directory and are organized as follows:
@@ -597,7 +669,7 @@ The `terraform/` directory contains the following files and directories, each se
 
 - **pipeline-agent4.yml**: YAML pipeline for deploying Agent4Auditing.
 
-- **pipeline-agent5.yml**: YAML pipeline for deploying Agent5Notifyer.
+- **pipeline-agent5.yml**: YAML pipeline for deploying Agent5Notifier.
 
 - **pipeline-agent6.yml**: YAML pipeline for deploying Agent6Decision.
 
@@ -643,7 +715,7 @@ The project includes YAML pipeline definitions for automating the deployment and
 - **pipeline-agent2.yml**: Pipeline for deploying Agent2EventClassifier.
 - **pipeline-agent3.yml**: Pipeline for deploying Agent3Runner.
 - **pipeline-agent4.yml**: Pipeline for deploying Agent4Auditing.
-- **pipeline-agent5.yml**: Pipeline for deploying Agent5Notifyer.
+- **pipeline-agent5.yml**: Pipeline for deploying Agent5Notifier.
 - **pipeline-agent6.yml**: Pipeline for deploying Agent6Decision.
 - **pipeline-infrastructure.yml**: Pipeline for deploying shared infrastructure.
 

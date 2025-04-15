@@ -8,7 +8,7 @@ using AzureOperationsAgents.Application.Services.Auditing;
 using AzureOperationsAgents.Core.Models.Auditing;
 using AzureOperationsAgents.Core.Models.Notifier;
 
-namespace AzureOperationsAgents.Agent5Notifyer;
+namespace AzureOperationsAgents.Agent5Notifier;
 
 public class NotificationFunction
 {
@@ -42,7 +42,7 @@ public class NotificationFunction
             // Log the notification to Agent4 (Auditing)
             var auditEvent = new AuditEvent
             {
-                AgentName = "Agent5Notifyer",
+                AgentName = "Agent5Notifier",
                 Message = $"Notification sent: {notification.Message}",
                 Timestamp = DateTimeOffset.UtcNow
             };

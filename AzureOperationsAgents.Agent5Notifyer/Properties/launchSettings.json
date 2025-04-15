@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "AzureOperationsAgents.Agent5Notifyer": {
+    "AzureOperationsAgents.Agent5Notifier": {
       "commandName": "Project",
       "commandLineArgs": "--port 7150",
       "launchBrowser": false

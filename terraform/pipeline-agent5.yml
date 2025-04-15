@@ -9,7 +9,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'publish'
-    projects: 'AzureOperationsAgents.Agent5Notifyer/AzureOperationsAgents.Agent5Notifyer.csproj'
+    projects: 'AzureOperationsAgents.Agent5Notifier/AzureOperationsAgents.Agent5Notifier.csproj'
     publishWebProjects: false
     arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
     zipAfterPublish: true

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
-namespace AzureOperationsAgents.Agent5Notifyer.Tests;
+namespace AzureOperationsAgents.Agent5Notifier.Tests;
 
 public class NotificationFunctionTests
 {

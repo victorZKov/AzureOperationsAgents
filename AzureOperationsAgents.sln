@@ -22,7 +22,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent4Auditing", "AzureOperationsAgents.Agent4Auditing\AzureOperationsAgents.Agent4Auditing.csproj", "{46C7DBA2-E327-429A-8802-21B60EE9A697}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent5Notifyer", "AzureOperationsAgents.Agent5Notifyer\AzureOperationsAgents.Agent5Notifyer.csproj", "{6F8C9C9E-B7CB-4B6E-802C-BADCB1B74DC1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent5Notifier", "AzureOperationsAgents.Agent5Notifier\AzureOperationsAgents.Agent5Notifier.csproj", "{6F8C9C9E-B7CB-4B6E-802C-BADCB1B74DC1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent6Decision", "AzureOperationsAgents.Agent6Decision\AzureOperationsAgents.Agent6Decision.csproj", "{7B9B05A2-9DC4-4FD0-813E-4BF6D09FB7A5}"
 EndProject
