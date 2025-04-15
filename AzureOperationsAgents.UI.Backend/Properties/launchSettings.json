@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AzureOperationsAgents.UI.Backend": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7150",
+      "launchBrowser": false
+    }
+  }
+}
