@@ -202,6 +202,62 @@ La función procesa solicitudes de ejecución del topic "scripts-to-execute" y e
 }
 ```
 
+## Documentación de Terraform
+
+El proyecto incluye scripts de Terraform para aprovisionar los recursos de Azure necesarios para los agentes. Estos scripts se encuentran en el directorio `terraform/` y están organizados de la siguiente manera:
+
+- **main.tf**: Define los recursos principales de infraestructura.
+- **variables.tf**: Contiene las definiciones de variables para los scripts de Terraform.
+- **provider-main.tf**: Configura el proveedor de Azure.
+- **provider-variables.tf**: Define las variables específicas del proveedor.
+- **locals.tf**: Contiene valores locales utilizados en los scripts.
+- **configuration/**: Contiene archivos de configuración adicionales para recursos específicos.
+
+### Explicación de los Archivos de Terraform
+
+El directorio `terraform/` contiene los siguientes archivos y directorios, cada uno con un propósito específico para aprovisionar y gestionar los recursos de Azure:
+
+- **main.tf**: Este es el archivo principal de configuración de Terraform que define los recursos principales de infraestructura, como cuentas de almacenamiento de Azure, Service Bus y otros componentes necesarios.
+
+- **variables.tf**: Contiene todas las definiciones de variables utilizadas en los scripts de Terraform. Estas variables permiten la personalización y reutilización de la configuración de Terraform.
+
+- **provider-main.tf**: Configura el proveedor de Azure, necesario para interactuar con los recursos de Azure. Incluye configuraciones como el ID de suscripción y el ID de inquilino.
+
+- **provider-variables.tf**: Define las variables específicas del proveedor, como los detalles de suscripción e inquilino de Azure, que se utilizan en el archivo `provider-main.tf`.
+
+- **locals.tf**: Contiene valores locales que se utilizan para simplificar y centralizar expresiones o valores repetidos en la configuración de Terraform.
+
+- **configuration/**: Este directorio contiene archivos de configuración adicionales para recursos específicos, como configuraciones de red, configuraciones de almacenamiento u otros componentes modulares.
+
+### Pasos para Usar Terraform
+
+1. Navegar al directorio `terraform/`:
+   ```bash
+   cd terraform
+   ```
+
+2. Inicializar Terraform:
+   ```bash
+   terraform init
+   ```
+
+3. Revisar el plan de ejecución:
+   ```bash
+   terraform plan
+   ```
+
+4. Aplicar los scripts de Terraform para aprovisionar recursos:
+   ```bash
+   terraform apply
+   ```
+
+5. Destruir los recursos cuando ya no sean necesarios:
+   ```bash
+   terraform destroy
+   ```
+
+Asegúrate de haber configurado tus credenciales de Azure y las variables de entorno antes de ejecutar los scripts.
+
 ## Contribución
 1. Fork el repositorio
 2. Crear una rama para tu feature (`git checkout -b feature/AmazingFeature`)
@@ -416,6 +472,102 @@ The function processes execution requests from the "scripts-to-execute" topic an
 }
 ```
 
+## Terraform Documentation
+
+The project includes Terraform scripts for provisioning Azure resources required by the agents. These scripts are located in the `terraform/` directory and are organized as follows:
+
+- **main.tf**: Defines the main infrastructure resources.
+- **variables.tf**: Contains variable definitions for the Terraform scripts.
+- **provider-main.tf**: Configures the Azure provider.
+- **provider-variables.tf**: Defines provider-specific variables.
+- **locals.tf**: Contains local values used across the scripts.
+- **configuration/**: Contains additional configuration files for specific resources.
+
+### Explanation of Terraform Files
+
+The `terraform/` directory contains the following files and directories, each serving a specific purpose in provisioning and managing Azure resources:
+
+- **main.tf**: This is the primary Terraform configuration file that defines the main infrastructure resources, such as Azure Storage Accounts, Service Bus, and other required components.
+
+- **variables.tf**: Contains all the variable definitions used across the Terraform scripts. These variables allow for customization and reusability of the Terraform configuration.
+
+- **provider-main.tf**: Configures the Azure provider, which is required to interact with Azure resources. It includes settings like subscription ID and tenant ID.
+
+- **provider-variables.tf**: Defines provider-specific variables, such as Azure subscription and tenant details, to be used in the `provider-main.tf` file.
+
+- **locals.tf**: Contains local values that are used to simplify and centralize repeated expressions or values across the Terraform configuration.
+
+- **configuration/**: This directory contains additional configuration files for specific resources, such as network settings, storage configurations, or other modular components.
+
+- **pipeline-agent0.yml**: YAML pipeline for deploying Agent0ScriptingAPI.
+
+- **pipeline-agent1.yml**: YAML pipeline for deploying Agent1MonitoringFunction.
+
+- **pipeline-agent2.yml**: YAML pipeline for deploying Agent2EventClassifier.
+
+- **pipeline-agent3.yml**: YAML pipeline for deploying Agent3Runner.
+
+- **pipeline-agent4.yml**: YAML pipeline for deploying Agent4Auditing.
+
+- **pipeline-agent5.yml**: YAML pipeline for deploying Agent5Notifyer.
+
+- **pipeline-agent6.yml**: YAML pipeline for deploying Agent6Decision.
+
+- **pipeline-infrastructure.yml**: YAML pipeline for deploying shared infrastructure components.
+
+Each file is designed to work together to ensure a seamless and efficient deployment of the Azure Operations Agents and their supporting infrastructure.
+
+### Steps to Use Terraform
+
+1. Navigate to the `terraform/` directory:
+   ```bash
+   cd terraform
+   ```
+
+2. Initialize Terraform:
+   ```bash
+   terraform init
+   ```
+
+3. Review the execution plan:
+   ```bash
+   terraform plan
+   ```
+
+4. Apply the Terraform scripts to provision resources:
+   ```bash
+   terraform apply
+   ```
+
+5. Destroy resources when no longer needed:
+   ```bash
+   terraform destroy
+   ```
+
+Ensure that you have configured your Azure credentials and environment variables before running the scripts.
+
+## Pipelines Documentation
+
+The project includes YAML pipeline definitions for automating the deployment and management of agents. These pipelines are located in the `terraform/` directory and are named as follows:
+
+- **pipeline-agent0.yml**: Pipeline for deploying Agent0ScriptingAPI.
+- **pipeline-agent1.yml**: Pipeline for deploying Agent1MonitoringFunction.
+- **pipeline-agent2.yml**: Pipeline for deploying Agent2EventClassifier.
+- **pipeline-agent3.yml**: Pipeline for deploying Agent3Runner.
+- **pipeline-agent4.yml**: Pipeline for deploying Agent4Auditing.
+- **pipeline-agent5.yml**: Pipeline for deploying Agent5Notifyer.
+- **pipeline-agent6.yml**: Pipeline for deploying Agent6Decision.
+- **pipeline-infrastructure.yml**: Pipeline for deploying shared infrastructure.
+
+### Steps to Use Pipelines
+
+1. Ensure that your Azure DevOps organization is set up and connected to your Azure subscription.
+2. Import the YAML pipeline files into your Azure DevOps project.
+3. Configure pipeline variables as needed for your environment.
+4. Run the pipelines to deploy the respective agents or infrastructure.
+
+Each pipeline is designed to automate the build, test, and deployment processes for its corresponding agent or infrastructure component.
+
 ## Contributing
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
@@ -424,4 +576,4 @@ The function processes execution requests from the "scripts-to-execute" topic an
 5. Open a Pull Request
 
 ## License
-This project is licensed under the MIT License. 
+This project is licensed under the MIT License.
