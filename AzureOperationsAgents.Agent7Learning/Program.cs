@@ -2,8 +2,10 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
 using AzureOperationsAgents.Application.Interfaces;
 using AzureOperationsAgents.Application.Services;
+using AzureOperationsAgents.Core.Interfaces.Learning;
 using AzureOperationsAgents.Infrastructure.Repositories;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>

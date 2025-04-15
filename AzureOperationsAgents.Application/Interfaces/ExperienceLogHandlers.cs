@@ -1,3 +1,5 @@
+using AzureOperationsAgents.Core.Models;
+
 namespace AzureOperationsAgents.Application.Interfaces
 {
     public interface ILogExperienceCommandHandler
