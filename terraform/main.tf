@@ -392,3 +392,53 @@ resource "azurerm_frontdoor_custom_https_configuration" "web_endpoint_https" {
     certificate_source = "FrontDoor"
   }
 }
+
+# Cosmos DB Account for Agent Learning
+resource "azurerm_cosmosdb_account" "agent_learning" {
+  name                = "agentlearningdb"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+
+  consistency_policy {
+    consistency_level = "Session"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.main.location
+    failover_priority = 0
+  }
+}
+
+# Cosmos DB SQL Database for Agent Learning
+resource "azurerm_cosmosdb_sql_database" "agent_learning_db" {
+  name                = "AgentLearning"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.agent_learning.name
+}
+
+# Cosmos DB SQL Container for Experience Logs
+resource "azurerm_cosmosdb_sql_container" "experience_logs" {
+  name                = "experienceLogs"
+  resource_group_name = azurerm_resource_group.main.name
+  account_name        = azurerm_cosmosdb_account.agent_learning.name
+  database_name       = azurerm_cosmosdb_sql_database.agent_learning_db.name
+
+  partition_key_path = "/agentId"
+  throughput         = 400
+}
+
+# User Assigned Identity for Function
+resource "azurerm_user_assigned_identity" "function_identity" {
+  name                = "agent7-function-identity"
+  location            = azurerm_resource_group.main.location
+  resource_group_name = azurerm_resource_group.main.name
+}
+
+# Role Assignment for Cosmos DB Access
+resource "azurerm_role_assignment" "cosmosdb_access" {
+  scope                = azurerm_cosmosdb_account.agent_learning.id
+  role_definition_name = "Cosmos DB Account Reader Role"
+  principal_id         = azurerm_user_assigned_identity.function_identity.principal_id
+}

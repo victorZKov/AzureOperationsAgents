@@ -1,13 +1,23 @@
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
+using AzureOperationsAgents.Application.Interfaces;
+using AzureOperationsAgents.Application.Services;
+using AzureOperationsAgents.Infrastructure.Repositories;
+using Microsoft.Azure.Cosmos;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+var builder = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((context, services) =>
+    {
+        // Register Cosmos DB client
+        services.AddSingleton(s => new CosmosClient(context.Configuration["CosmosDbConnection"]));
 
-builder.ConfigureFunctionsWebApplication();
+        // Register repositories
+        services.AddScoped<IExperienceLogRepository, ExperienceLogRepository>();
 
-// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
-// builder.Services
-//     .AddApplicationInsightsTelemetryWorkerService()
-//     .ConfigureFunctionsApplicationInsights();
+        // Register handlers
+        services.AddScoped<ILogExperienceCommandHandler, LogExperienceCommandHandler>();
+        services.AddScoped<IGetExperienceRecommendationsQueryHandler, GetExperienceRecommendationsQueryHandler>();
+    });
 
-builder.Build().Run();
+var host = builder.Build();
+await host.RunAsync();
