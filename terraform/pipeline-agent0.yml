@@ -1,0 +1,22 @@
+# Agent0 Function Deployment Pipeline
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'AzureOperationsAgents.Agent0ScriptingAPI/AzureOperationsAgents.Agent0ScriptingAPI.csproj'
+    publishWebProjects: false
+    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: AzureFunctionApp@1
+  inputs:
+    azureSubscription: 'YourAzureSubscription'
+    appType: 'functionAppLinux'
+    appName: '${{ variables.app_name_short }}-agent0-scripting'
+    package: '$(Build.ArtifactStagingDirectory)/*.zip'
