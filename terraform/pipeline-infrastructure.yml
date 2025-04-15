@@ -1,0 +1,22 @@
+# Infrastructure Deployment Pipeline
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '3.x'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install -r requirements.txt
+  displayName: 'Install dependencies'
+
+- script: |
+    terraform init
+    terraform plan
+    terraform apply -auto-approve
+  displayName: 'Deploy Infrastructure'
