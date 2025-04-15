@@ -9,6 +9,10 @@ Azure Operations Agents es una solución que proporciona cuatro agentes especial
 2. **Agent1MonitoringFunction**: Monitorea recursos de Azure y envía notificaciones a través de Azure Service Bus
 3. **Agent2EventClassifier**: Clasifica eventos de Azure usando inteligencia artificial
 4. **Agent3Runner**: Ejecuta scripts generados y devuelve los resultados
+5. **Agent4Auditing**: Registra eventos de auditoría
+6. **Agent5Notifyer**: Envía notificaciones
+7. **Agent6Decision**: Orquesta decisiones
+8. **Agent7Learning**: Aprende de eventos pasados
 
 ## Arquitectura
 La solución está implementada siguiendo los principios de Clean Architecture y consta de las siguientes capas:
@@ -71,6 +75,46 @@ Función de Azure que ejecuta scripts:
 - Almacenamiento en Azure Table Storage
 - Notificaciones a través de Service Bus
 - Seguimiento de estado y duración
+
+### Agent4Auditing
+Función de Azure que registra eventos de auditoría:
+- Registra eventos para propósitos de auditoría
+- Se integra con SignalR para actualizaciones en tiempo real
+
+#### Características
+- Registro de auditoría en tiempo real
+- Integración con SignalR
+- Almacenamiento en Azure Table Storage
+
+### Agent5Notifyer
+Función de Azure que envía notificaciones:
+- Procesa solicitudes de notificación
+- Envía notificaciones por correo electrónico, SMS o notificaciones push
+
+#### Características
+- Notificaciones multicanal
+- Integración con Azure Notification Hubs
+- Plantillas de notificación personalizables
+
+### Agent6Decision
+Función de Azure que orquesta decisiones:
+- Procesa flujos de trabajo de toma de decisiones
+- Se integra con otros agentes para datos y acciones
+
+#### Características
+- Orquestación de flujos de trabajo
+- Integración con otros agentes
+- Registro y seguimiento de decisiones
+
+### Agent7Learning
+Función de Azure que aprende de eventos pasados:
+- Registra experiencias de mensajes de Service Bus
+- Proporciona recomendaciones basadas en experiencias registradas
+
+#### Características
+- Registro de experiencias en Cosmos DB
+- Generación de recomendaciones
+- Integración con Azure OpenAI
 
 ## Requisitos
 - .NET 8.0
@@ -279,6 +323,10 @@ Azure Operations Agents is a solution that provides four specialized agents for 
 2. **Agent1MonitoringFunction**: Monitors Azure resources and sends notifications via Azure Service Bus
 3. **Agent2EventClassifier**: Classifies Azure events using artificial intelligence
 4. **Agent3Runner**: Executes generated scripts and returns results
+5. **Agent4Auditing**: Logs audit events
+6. **Agent5Notifyer**: Sends notifications
+7. **Agent6Decision**: Orchestrates decisions
+8. **Agent7Learning**: Learns from past events
 
 ## Architecture
 The solution is implemented following Clean Architecture principles and consists of the following layers:
@@ -341,6 +389,46 @@ Azure Function that executes scripts:
 - Storage in Azure Table Storage
 - Notifications via Service Bus
 - Status and duration tracking
+
+### Agent4Auditing
+Azure Function that logs audit events:
+- Logs events for auditing purposes
+- Integrates with SignalR for real-time updates
+
+#### Features
+- Real-time audit logging
+- Integration with SignalR
+- Storage in Azure Table Storage
+
+### Agent5Notifyer
+Azure Function that sends notifications:
+- Processes notification requests
+- Sends notifications via email, SMS, or push notifications
+
+#### Features
+- Multi-channel notifications
+- Integration with Azure Notification Hubs
+- Customizable notification templates
+
+### Agent6Decision
+Azure Function that orchestrates decisions:
+- Processes decision-making workflows
+- Integrates with other agents for data and actions
+
+#### Features
+- Workflow orchestration
+- Integration with other agents
+- Decision logging and tracking
+
+### Agent7Learning
+Azure Function that learns from past events:
+- Logs experiences from Service Bus messages
+- Provides recommendations based on logged experiences
+
+#### Features
+- Experience logging in Cosmos DB
+- Recommendation generation
+- Integration with Azure OpenAI
 
 ## Requirements
 - .NET 8.0
