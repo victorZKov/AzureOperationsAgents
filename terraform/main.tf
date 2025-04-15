@@ -167,6 +167,18 @@ resource "azurerm_function_app" "agent6_decision" {
   depends_on                 = [azurerm_app_service_plan.agent6_decision_plan]
 }
 
+# Azure Function App for AzureOperationsAgents.UI.Backend
+resource "azurerm_function_app" "ui_backend" {
+  name                       = "${var.app_name_short}-ui-backend"
+  location                   = azurerm_resource_group.functions_rg.location
+  resource_group_name        = azurerm_resource_group.functions_rg.name
+  storage_account_name       = azurerm_storage_account.functions_storage.name
+  storage_account_access_key = azurerm_storage_account.functions_storage.primary_access_key
+  app_service_plan_id        = azurerm_app_service_plan.ui_backend_plan.id
+  os_type                    = "Linux"
+  runtime_stack              = "dotnet"
+}
+
 # App Service Plan for Azure Functions
 resource "azurerm_app_service_plan" "functions_plan" {
   name                = "${var.app_name_short}-functions-plan"
@@ -250,5 +262,133 @@ resource "azurerm_app_service_plan" "agent6_decision_plan" {
   sku {
     tier = "Dynamic"
     size = "Y1"
+  }
+}
+
+# App Service Plan for AzureOperationsAgents.UI.Backend
+resource "azurerm_app_service_plan" "ui_backend_plan" {
+  name                = "${var.app_name_short}-ui-backend-plan"
+  location            = azurerm_resource_group.functions_rg.location
+  resource_group_name = azurerm_resource_group.functions_rg.name
+  kind                = "FunctionApp"
+  reserved            = true
+  sku {
+    tier = "Dynamic"
+    size = "Y1"
+  }
+}
+
+# App Service Plan for AzureOperationsAgents.UI Web App
+resource "azurerm_app_service_plan" "ui_web_plan" {
+  name                = "${var.app_name_short}-ui-web-plan"
+  location            = azurerm_resource_group.functions_rg.location
+  resource_group_name = azurerm_resource_group.functions_rg.name
+  kind                = "App"
+  reserved            = false
+  sku {
+    tier = "Standard"
+    size = "S1"
+  }
+}
+
+# Azure Web App for AzureOperationsAgents.UI
+resource "azurerm_app_service" "web_app" {
+  name                = "${var.app_name_short}-ui-web"
+  location            = azurerm_resource_group.functions_rg.location
+  resource_group_name = azurerm_resource_group.functions_rg.name
+  app_service_plan_id = azurerm_app_service_plan.ui_web_plan.id
+  site_config {
+    dotnet_framework_version = "v6.0"
+  }
+}
+
+# API Management for AzureOperationsAgents.UI.Backend
+resource "azurerm_api_management" "api_management" {
+  name                = "${var.app_name_short}-api-management"
+  location            = azurerm_resource_group.functions_rg.location
+  resource_group_name = azurerm_resource_group.functions_rg.name
+  publisher_name      = "${var.company}"
+  publisher_email     = "admin@${var.company}.com"
+  sku_name            = "Developer_1"
+
+  api {
+    name        = "ui-backend-api"
+    path        = "ui-backend"
+    protocols   = ["https"]
+    service_url = azurerm_function_app.ui_backend.default_hostname
+  }
+}
+
+# Managed DNS Domain
+resource "azurerm_dns_zone" "managed_domain" {
+  name                = "domain.com"
+  resource_group_name = azurerm_resource_group.functions_rg.name
+}
+
+# FrontDoor Configuration
+resource "azurerm_frontdoor" "app_frontdoor" {
+  name                = "${local.app_name}-frontdoor"
+  resource_group_name = azurerm_resource_group.functions_rg.name
+  location            = azurerm_resource_group.functions_rg.location
+
+  routing_rule {
+    name               = "api-routing-rule"
+    accepted_protocols = ["Https"]
+    patterns_to_match  = ["/api/*"]
+    frontend_endpoints = [azurerm_frontdoor_frontend_endpoint.api_endpoint.name]
+    forwarding_configuration {
+      backend_pool_name = "api-backend-pool"
+    }
+  }
+
+  routing_rule {
+    name               = "web-routing-rule"
+    accepted_protocols = ["Https"]
+    patterns_to_match  = ["/*"]
+    frontend_endpoints = [azurerm_frontdoor_frontend_endpoint.web_endpoint.name]
+    forwarding_configuration {
+      backend_pool_name = "web-backend-pool"
+    }
+  }
+
+  backend_pool {
+    name = "api-backend-pool"
+    backend {
+      host_header = "api.domain.com"
+      address     = azurerm_api_management.api_management.gateway_url
+      http_port   = 80
+      https_port  = 443
+    }
+  }
+
+  backend_pool {
+    name = "web-backend-pool"
+    backend {
+      host_header = "app.domain.com"
+      address     = azurerm_app_service.web_app.default_site_hostname
+      http_port   = 80
+      https_port  = 443
+    }
+  }
+
+  frontend_endpoint {
+    name                              = "api-endpoint"
+    host_name                         = "api.domain.com"
+    web_application_firewall_policy_id = null
+  }
+
+  frontend_endpoint {
+    name                              = "web-endpoint"
+    host_name                         = "app.domain.com"
+    web_application_firewall_policy_id = null
+  }
+}
+
+# Link FrontDoor endpoint to the web app
+resource "azurerm_frontdoor_custom_https_configuration" "web_endpoint_https" {
+  frontend_endpoint_id = azurerm_frontdoor_frontend_endpoint.web_endpoint.id
+  custom_https_provisioning_enabled = true
+  custom_https_configuration {
+    certificate_source = "FrontDoor"
   }
 }

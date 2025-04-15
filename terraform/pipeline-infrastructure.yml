@@ -17,6 +17,6 @@ steps:
 
 - script: |
     terraform init
-    terraform plan
-    terraform apply -auto-approve
-  displayName: 'Deploy Infrastructure'
+    terraform plan -target=azurerm_function_app.ui_backend -target=azurerm_app_service.web_app -target=azurerm_api_management.api_management -target=azurerm_frontdoor.app_frontdoor
+    terraform apply -auto-approve -target=azurerm_function_app.ui_backend -target=azurerm_app_service.web_app -target=azurerm_api_management.api_management -target=azurerm_frontdoor.app_frontdoor
+  displayName: 'Deploy UI Backend, Web App, API Management, and FrontDoor'
