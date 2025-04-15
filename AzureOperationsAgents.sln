@@ -51,6 +51,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.UI.Ba
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.UI.Web", "AzureOperationsAgents.UI.Web\AzureOperationsAgents.UI.Web.csproj", "{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent7Learning", "AzureOperationsAgents.Agent7Learning\AzureOperationsAgents.Agent7Learning.csproj", "{47664C10-BF6B-4312-8E7A-65742645FD5C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,6 +107,10 @@ Global
 		{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -122,5 +128,6 @@ Global
 		{7B9B05A2-9DC4-4FD0-813E-4BF6D09FB7A5} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{7495C419-0E88-4C64-85EC-866DAAC64DC5} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
+		{47664C10-BF6B-4312-8E7A-65742645FD5C} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 	EndGlobalSection
 EndGlobal
