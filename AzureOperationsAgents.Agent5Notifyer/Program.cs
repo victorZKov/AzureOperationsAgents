@@ -1,9 +1,20 @@
-using Microsoft.Azure.Functions.Worker.Builder;
+using AzureOperationsAgents.Application.Services.Auditing;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+// var host = new HostBuilder()
+//     .ConfigureFunctionsWebApplication()
+//     .ConfigureServices((context, services) =>
+//     {
+//         services.AddScoped<AuditEventService>();
+//     })
+//     .Build();
+// host.Run();
 
-builder.ConfigureFunctionsWebApplication();
+        
+var builder = WebApplication.CreateBuilder(args);
+
 
 // Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
 // builder.Services

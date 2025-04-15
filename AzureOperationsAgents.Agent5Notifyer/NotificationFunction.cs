@@ -1,4 +1,13 @@
-// Extracted NotificationFunction class to a separate file
+using AzureOperationsAgents.Core.Interfaces;
+using AzureOperationsAgents.Core.Models;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
+using Azure.Messaging.ServiceBus;
+using AzureOperationsAgents.Application.Services.Auditing;
+using AzureOperationsAgents.Core.Models.Auditing;
+using AzureOperationsAgents.Core.Models.Notifier;
+
 namespace AzureOperationsAgents.Agent5Notifyer;
 
 public class NotificationFunction
