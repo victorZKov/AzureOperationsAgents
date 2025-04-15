@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "AzureOperationsAgents.Agent6Decision": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7150",
+      "launchBrowser": false
+    }
+  }
+}
