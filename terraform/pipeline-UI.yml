@@ -1,0 +1,22 @@
+# Agent6 Function Deployment Pipeline
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+- task: DotNetCoreCLI@2
+  inputs:
+    command: 'publish'
+    projects: 'AzureOperationsAgents.UI/AzureOperationsAgents.UI.csproj'
+    publishWebProjects: false
+    arguments: '--configuration Release --output $(Build.ArtifactStagingDirectory)'
+    zipAfterPublish: true
+
+- task: AzureFunctionApp@1
+  inputs:
+    azureSubscription: 'YourAzureSubscription'
+    appType: 'functionAppLinux'
+    appName: '${{ variables.app_name_short }}-ui'
+    package: '$(Build.ArtifactStagingDirectory)/*.zip'

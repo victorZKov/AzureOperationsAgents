@@ -27,6 +27,25 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent6Decision", "AzureOperationsAgents.Agent6Decision\AzureOperationsAgents.Agent6Decision.csproj", "{7B9B05A2-9DC4-4FD0-813E-4BF6D09FB7A5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Terraform", "Terraform", "{5B2B1250-56DA-484F-8E75-5807A86184B0}"
+	ProjectSection(SolutionItems) = preProject
+		terraform\variables.tf = terraform\variables.tf
+		terraform\configuration\backend-config.tfvars = terraform\configuration\backend-config.tfvars
+		terraform\configuration\vars.tfvars = terraform\configuration\vars.tfvars
+		terraform\locals.tf = terraform\locals.tf
+		terraform\provider-variables.tf = terraform\provider-variables.tf
+		terraform\pipeline-agent0.yml = terraform\pipeline-agent0.yml
+		terraform\pipeline-agent1.yml = terraform\pipeline-agent1.yml
+		terraform\pipeline-agent2.yml = terraform\pipeline-agent2.yml
+		terraform\pipeline-agent3.yml = terraform\pipeline-agent3.yml
+		terraform\pipeline-agent4.yml = terraform\pipeline-agent4.yml
+		terraform\pipeline-agent5.yml = terraform\pipeline-agent5.yml
+		terraform\pipeline-agent6.yml = terraform\pipeline-agent6.yml
+		terraform\main.tf = terraform\main.tf
+		terraform\pipeline-infrastructure.yml = terraform\pipeline-infrastructure.yml
+		terraform\provider-main.tf = terraform\provider-main.tf
+		terraform\pipeline-UI.yml = terraform\pipeline-UI.yml
+		terraform\pipeline-UIBackend.yml = terraform\pipeline-UIBackend.yml
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.UI.Backend", "AzureOperationsAgents.UI.Backend\AzureOperationsAgents.UI.Backend.csproj", "{7495C419-0E88-4C64-85EC-866DAAC64DC5}"
 EndProject
