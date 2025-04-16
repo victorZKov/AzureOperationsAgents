@@ -4,6 +4,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using System.Net;
 using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Backend;
 
 namespace AzureOperationsAgents.Agent1MonitoringFunction.Functions;
 

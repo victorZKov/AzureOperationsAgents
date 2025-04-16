@@ -1,13 +1,10 @@
-using AzureOperationsAgents.Core.Interfaces;
-using AzureOperationsAgents.Core.Models;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using AzureOperationsAgents.Core.Interfaces.Classification;
 using AzureOperationsAgents.Core.Models.Classification;
+using Microsoft.Azure.Functions.Worker;
 
-namespace AzureOperationsAgents.Agent2EventClassifier;
+namespace AzureOperationsAgents.Agent2EventClassifier.Functions;
 
 public class EventClassificationFunction
 {

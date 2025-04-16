@@ -7,7 +7,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AzureOperationsAgents.Core\AzureOperationsAgents.Core.csproj" />
-    <ProjectReference Include="..\AzureOperationsAgents.Application\AzureOperationsAgents.Application.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -25,22 +25,6 @@ builder.Services.AddScoped<IScriptRepository>(sp => new ScriptRepository(
 
 var app = builder.Build();
 
-// Define a static class to hold agent metadata and configuration
-public static class Agent0Metadata
-{
-    public static IAgentMetadata Metadata { get; set; } = new AgentMetadata
-    {
-        Id = $"Agent0-{Guid.NewGuid().ToString().Substring(0, 8)}",
-        Name = $"Scripting API Agent-{Guid.NewGuid().ToString().Substring(0, 8)}",
-        Version = "1.0.0",
-        Status = "Idle",
-        LastRunTime = DateTime.MinValue
-    };
-
-    public static AgentConfig Config { get; set; } = new AgentConfig();
-}
-
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

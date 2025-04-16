@@ -1,6 +1,4 @@
-using System;
-
-namespace AzureOperationsAgents.Core.Models
+namespace AzureOperationsAgents.Core.Models.Backend
 {
     public class AgentLogEntry
     {

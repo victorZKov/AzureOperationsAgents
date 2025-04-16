@@ -1,13 +1,10 @@
-using AzureOperationsAgents.Core.Interfaces;
-using AzureOperationsAgents.Core.Models;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using AzureOperationsAgents.Core.Interfaces.Execution;
 using AzureOperationsAgents.Core.Models.Execution;
+using Microsoft.Azure.Functions.Worker;
 
-namespace AzureOperationsAgents.Agent3Runner;
+namespace AzureOperationsAgents.Agent3Runner.Functions;
 
 public class ScriptExecutionFunction
 {

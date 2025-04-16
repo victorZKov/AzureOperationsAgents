@@ -1,9 +1,7 @@
-using System;
-using System.Collections.Generic;
-using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Backend;
 using AzureOperationsAgents.Infrastructure.Repositories;
 
-namespace AzureOperationsAgents.Application.Services
+namespace AzureOperationsAgents.Application.Services.Backend
 {
     public class AgentService
     {

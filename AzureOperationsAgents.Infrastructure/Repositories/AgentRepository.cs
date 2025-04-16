@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Backend;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories
 {

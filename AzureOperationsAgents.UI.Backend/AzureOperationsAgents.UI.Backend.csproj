@@ -28,4 +28,8 @@
     <ItemGroup>
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext"/>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\AzureOperationsAgents.Application\AzureOperationsAgents.Application.csproj" />
+      <ProjectReference Include="..\AzureOperationsAgents.Infrastructure\AzureOperationsAgents.Infrastructure.csproj" />
+    </ItemGroup>
 </Project>

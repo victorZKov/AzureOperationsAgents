@@ -22,5 +22,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\AzureOperationsAgents.Core\AzureOperationsAgents.Core.csproj" />
+    <ProjectReference Include="..\AzureOperationsAgents.Infrastructure\AzureOperationsAgents.Infrastructure.csproj" />
   </ItemGroup>
 </Project> 

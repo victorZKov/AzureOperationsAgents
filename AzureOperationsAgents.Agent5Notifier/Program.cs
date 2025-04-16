@@ -7,19 +7,6 @@ using AzureOperationsAgents.Core.Models;
 using System;
 
 // Define a static class to hold agent metadata and configuration
-public static class Agent5Metadata
-{
-    public static IAgentMetadata Metadata { get; set; } = new AgentMetadata
-    {
-        Id = $"Agent5-{Guid.NewGuid().ToString().Substring(0, 8)}",
-        Name = $"Notifier Agent-{Guid.NewGuid().ToString().Substring(0, 8)}",
-        Version = "1.0.0",
-        Status = "Idle",
-        LastRunTime = DateTime.MinValue
-    };
-
-    public static AgentConfig Config { get; set; } = new AgentConfig();
-}
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,4 +1,4 @@
-namespace AzureOperationsAgents.Core.Interfaces;
+namespace AzureOperationsAgents.Core.Interfaces.Backend;
 
 public interface IAgentMetadata
 {

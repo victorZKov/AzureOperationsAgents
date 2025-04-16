@@ -1,13 +1,11 @@
-using System;
 using System.Text.Json;
 using AzureOperationsAgents.Agent4Auditing.SignalR;
 using AzureOperationsAgents.Application.Services.Auditing;
 using AzureOperationsAgents.Core.Models.Auditing;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 
-namespace AzureOperationsAgent.Agent4Auditing;
+namespace AzureOperationsAgent.Agent4Auditing.Functions;
 
 public class AuditEventLogger
 {

@@ -1,14 +1,11 @@
-using AzureOperationsAgents.Core.Interfaces;
-using AzureOperationsAgents.Core.Models;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 using System.Text.Json;
-using Azure.Messaging.ServiceBus;
 using AzureOperationsAgents.Application.Services.Auditing;
 using AzureOperationsAgents.Core.Models.Auditing;
 using AzureOperationsAgents.Core.Models.Notifier;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
-namespace AzureOperationsAgents.Agent5Notifier;
+namespace AzureOperationsAgents.Agent5Notifier.Functions;
 
 public class NotificationFunction
 {

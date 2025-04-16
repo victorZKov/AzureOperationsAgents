@@ -1,12 +1,10 @@
+using System.Text.Json;
 using AzureOperationsAgents.Application.Services.Orchestration;
 using AzureOperationsAgents.Core.Models.Monitoring;
-
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using Azure.Messaging.ServiceBus;
 
-namespace AzureOperationsAgents.Agent6Decision;
+namespace AzureOperationsAgents.Agent6Decision.Functions;
 
 public class OrchestrationFunction
 {
