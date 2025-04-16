@@ -7,6 +7,8 @@ using System.Net;
 using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Models;
 using System.Text.Json;
+using AzureOperationsAgents.Core.Interfaces.Backend;
+using AzureOperationsAgents.Core.Models.Backend;
 
 namespace AzureOperationsAgents.UI.Backend.Functions;
 
