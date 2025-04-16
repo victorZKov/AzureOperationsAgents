@@ -123,6 +123,7 @@ Función de Azure que aprende de eventos pasados:
 - Azure Storage Account
 - Azure Service Bus
 - Azure Log Analytics Workspace
+- Azure Cosmos DB (for Agent7Learning)
 
 ## Configuración
 1. Clonar el repositorio
@@ -138,54 +139,162 @@ Función de Azure que aprende de eventos pasados:
    AZURE_CLIENT_SECRET=your_client_secret
    ```
 
-## Despliegue
-1. Desplegar Agent0ScriptingAPI:
+## Configuración de Variables de Entorno por Agente
+
+### Agent0ScriptingAPI
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+
+### Agent1MonitoringFunction
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnectionString`: Cadena de conexión para Azure Service Bus.
+- `ServiceBusQueueName`: Nombre de la cola de Service Bus.
+
+### Agent2EventClassifier
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnection`: Cadena de conexión para Azure Service Bus (entrada y salida).
+
+### Agent3Runner
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnection`: Cadena de conexión para Azure Service Bus (entrada y salida).
+
+### Agent4Auditing
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnection`: Cadena de conexión para Azure Service Bus (suscripción de auditoría).
+
+### Agent5Notifier
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnection`: Cadena de conexión para Azure Service Bus (cola de notificaciones).
+
+### Agent6Decision
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `ServiceBusConnection`: Cadena de conexión para Azure Service Bus (cola de incidentes).
+
+### Agent7Learning
+- `OpenAI:Endpoint`: URL del servicio OpenAI.
+- `OpenAI:ApiKey`: Clave API para el servicio OpenAI.
+- `Azure:StorageConnectionString`: Cadena de conexión para Azure Storage.
+- `CosmosDB:AccountEndpoint`: URL del endpoint de Cosmos DB.
+- `CosmosDB:AccountKey`: Clave de acceso para Cosmos DB.
+- `CosmosDB:DatabaseName`: Nombre de la base de datos en Cosmos DB.
+
+---
+
+## Environment Variables Configuration by Agent
+
+### Agent0ScriptingAPI
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+
+### Agent1MonitoringFunction
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnectionString`: Connection string for Azure Service Bus.
+- `ServiceBusQueueName`: Name of the Service Bus queue.
+
+### Agent2EventClassifier
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (input and output).
+
+### Agent3Runner
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (input and output).
+
+### Agent4Auditing
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (audit subscription).
+
+### Agent5Notifier
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (notifications queue).
+
+### Agent6Decision
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (incidents queue).
+
+### Agent7Learning
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `CosmosDB:AccountEndpoint`: URL for the Cosmos DB endpoint.
+- `CosmosDB:AccountKey`: Access key for Cosmos DB.
+- `CosmosDB:DatabaseName`: Name of the database in Cosmos DB.
+
+## Deployment
+
+### Step 1: Deploy Infrastructure
+The infrastructure required for the agents can be provisioned using Terraform. Follow these steps:
+
+1. Navigate to the `terraform/` directory:
    ```bash
-   cd AzureOperationsAgents.Agent0ScriptingAPI
-   dotnet publish -c Release
+   cd terraform
    ```
 
-2. Desplegar Agent1MonitoringFunction:
+2. Initialize Terraform:
    ```bash
-   cd AzureOperationsAgents.Agent1MonitoringFunction
-   dotnet publish -c Release
+   terraform init
    ```
 
-3. Desplegar Agent2EventClassifier:
+3. Review the execution plan:
    ```bash
-   cd AzureOperationsAgents.Agent2EventClassifier
-   dotnet publish -c Release
+   terraform plan
    ```
 
-4. Desplegar Agent3Runner:
+4. Apply the Terraform scripts to provision resources:
    ```bash
-   cd AzureOperationsAgents.Agent3Runner
-   dotnet publish -c Release
+   terraform apply
    ```
 
-5. Desplegar Agent4Auditing:
+5. (Optional) Destroy resources when no longer needed:
    ```bash
-   cd AzureOperationsAgents.Agent4Auditing
-   dotnet publish -c Release
+   terraform destroy
    ```
 
-6. Desplegar Agent5Notifier:
-   ```bash
-   cd AzureOperationsAgents.Agent5Notifier
-   dotnet publish -c Release
-   ```
+Ensure that your Azure credentials and environment variables are configured before running the scripts.
 
-7. Desplegar Agent6Decision:
-   ```bash
-   cd AzureOperationsAgents.Agent6Decision
-   dotnet publish -c Release
-   ```
+### Step 2: Build and Deploy Agents
+The agents can be deployed using the provided YAML pipelines. Follow these steps:
 
-8. Desplegar Agent7Learning:
-   ```bash
-   cd AzureOperationsAgents.Agent7Learning
-   dotnet publish -c Release
-   ```
+1. Import the YAML pipeline files into your Azure DevOps project. The pipeline files are located in the `terraform/` directory and are named as follows:
+   - `pipeline-agent0.yml`: Deploys Agent0ScriptingAPI.
+   - `pipeline-agent1.yml`: Deploys Agent1MonitoringFunction.
+   - `pipeline-agent2.yml`: Deploys Agent2EventClassifier.
+   - `pipeline-agent3.yml`: Deploys Agent3Runner.
+   - `pipeline-agent4.yml`: Deploys Agent4Auditing.
+   - `pipeline-agent5.yml`: Deploys Agent5Notifier.
+   - `pipeline-agent6.yml`: Deploys Agent6Decision.
+   - `pipeline-infrastructure.yml`: Deploys shared infrastructure components.
+
+2. Configure pipeline variables as needed for your environment.
+
+3. Run the pipelines to build, test, and deploy the respective agents or infrastructure.
+
+Each pipeline automates the deployment process, ensuring consistency and efficiency.
 
 ## Uso
 ### Agent0ScriptingAPI
@@ -309,6 +418,24 @@ El directorio `terraform/` contiene los siguientes archivos y directorios, cada 
 
 - **configuration/**: Este directorio contiene archivos de configuración adicionales para recursos específicos, como configuraciones de red, configuraciones de almacenamiento u otros componentes modulares.
 
+- **pipeline-agent0.yml**: YAML pipeline for deploying Agent0ScriptingAPI.
+
+- **pipeline-agent1.yml**: YAML pipeline for deploying Agent1MonitoringFunction.
+
+- **pipeline-agent2.yml**: YAML pipeline for deploying Agent2EventClassifier.
+
+- **pipeline-agent3.yml**: YAML pipeline for deploying Agent3Runner.
+
+- **pipeline-agent4.yml**: YAML pipeline for deploying Agent4Auditing.
+
+- **pipeline-agent5.yml**: YAML pipeline for deploying Agent5Notifier.
+
+- **pipeline-agent6.yml**: YAML pipeline for deploying Agent6Decision.
+
+- **pipeline-infrastructure.yml**: YAML pipeline for deploying shared infrastructure components.
+
+Cada archivo está diseñado para trabajar en conjunto y asegurar un despliegue eficiente y sin problemas de los Azure Operations Agents y su infraestructura de soporte.
+
 ### Pasos para Usar Terraform
 
 1. Navegar al directorio `terraform/`:
@@ -337,6 +464,28 @@ El directorio `terraform/` contiene los siguientes archivos y directorios, cada 
    ```
 
 Asegúrate de haber configurado tus credenciales de Azure y las variables de entorno antes de ejecutar los scripts.
+
+## Pipelines Documentation
+
+The project includes YAML pipeline definitions for automating the deployment and management of agents. These pipelines are located in the `terraform/` directory and are named as follows:
+
+- **pipeline-agent0.yml**: Pipeline for deploying Agent0ScriptingAPI.
+- **pipeline-agent1.yml**: Pipeline for deploying Agent1MonitoringFunction.
+- **pipeline-agent2.yml**: Pipeline for deploying Agent2EventClassifier.
+- **pipeline-agent3.yml**: Pipeline for deploying Agent3Runner.
+- **pipeline-agent4.yml**: Pipeline for deploying Agent4Auditing.
+- **pipeline-agent5.yml**: Pipeline for deploying Agent5Notifier.
+- **pipeline-agent6.yml**: Pipeline for deploying Agent6Decision.
+- **pipeline-infrastructure.yml**: Pipeline for deploying shared infrastructure.
+
+### Steps to Use Pipelines
+
+1. Ensure that your Azure DevOps organization is set up and connected to your Azure subscription.
+2. Import the YAML pipeline files into your Azure DevOps project.
+3. Configure pipeline variables as needed for your environment.
+4. Run the pipelines to deploy the respective agents or infrastructure.
+
+Each pipeline is designed to automate the build, test, and deployment processes for its corresponding agent or infrastructure component.
 
 ## Contribución
 1. Fork el repositorio
@@ -473,6 +622,7 @@ Azure Function that learns from past events:
 - Azure Storage Account
 - Azure Service Bus
 - Azure Log Analytics Workspace
+- Azure Cosmos DB (for Agent7Learning)
 
 ## Setup
 1. Clone the repository
@@ -488,54 +638,108 @@ Azure Function that learns from past events:
    AZURE_CLIENT_SECRET=your_client_secret
    ```
 
+## Environment Variables Configuration by Agent
+
+### Agent0ScriptingAPI
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+
+### Agent1MonitoringFunction
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnectionString`: Connection string for Azure Service Bus.
+- `ServiceBusQueueName`: Name of the Service Bus queue.
+
+### Agent2EventClassifier
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (input and output).
+
+### Agent3Runner
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (input and output).
+
+### Agent4Auditing
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (audit subscription).
+
+### Agent5Notifier
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (notifications queue).
+
+### Agent6Decision
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `ServiceBusConnection`: Connection string for Azure Service Bus (incidents queue).
+
+### Agent7Learning
+- `OpenAI:Endpoint`: URL for the OpenAI service.
+- `OpenAI:ApiKey`: API key for the OpenAI service.
+- `Azure:StorageConnectionString`: Connection string for Azure Storage.
+- `CosmosDB:AccountEndpoint`: URL for the Cosmos DB endpoint.
+- `CosmosDB:AccountKey`: Access key for Cosmos DB.
+- `CosmosDB:DatabaseName`: Name of the database in Cosmos DB.
+
 ## Deployment
-1. Deploy Agent0ScriptingAPI:
+
+### Step 1: Deploy Infrastructure
+The infrastructure required for the agents can be provisioned using Terraform. Follow these steps:
+
+1. Navigate to the `terraform/` directory:
    ```bash
-   cd AzureOperationsAgents.Agent0ScriptingAPI
-   dotnet publish -c Release
+   cd terraform
    ```
 
-2. Deploy Agent1MonitoringFunction:
+2. Initialize Terraform:
    ```bash
-   cd AzureOperationsAgents.Agent1MonitoringFunction
-   dotnet publish -c Release
+   terraform init
    ```
 
-3. Deploy Agent2EventClassifier:
+3. Review the execution plan:
    ```bash
-   cd AzureOperationsAgents.Agent2EventClassifier
-   dotnet publish -c Release
+   terraform plan
    ```
 
-4. Deploy Agent3Runner:
+4. Apply the Terraform scripts to provision resources:
    ```bash
-   cd AzureOperationsAgents.Agent3Runner
-   dotnet publish -c Release
+   terraform apply
    ```
 
-5. Deploy Agent4Auditing:
+5. (Optional) Destroy resources when no longer needed:
    ```bash
-   cd AzureOperationsAgents.Agent4Auditing
-   dotnet publish -c Release
+   terraform destroy
    ```
 
-6. Deploy Agent5Notifier:
-   ```bash
-   cd AzureOperationsAgents.Agent5Notifier
-   dotnet publish -c Release
-   ```
+Ensure that your Azure credentials and environment variables are configured before running the scripts.
 
-7. Deploy Agent6Decision:
-   ```bash
-   cd AzureOperationsAgents.Agent6Decision
-   dotnet publish -c Release
-   ```
+### Step 2: Build and Deploy Agents
+The agents can be deployed using the provided YAML pipelines. Follow these steps:
 
-8. Deploy Agent7Learning:
-   ```bash
-   cd AzureOperationsAgents.Agent7Learning
-   dotnet publish -c Release
-   ```
+1. Import the YAML pipeline files into your Azure DevOps project. The pipeline files are located in the `terraform/` directory and are named as follows:
+   - `pipeline-agent0.yml`: Deploys Agent0ScriptingAPI.
+   - `pipeline-agent1.yml`: Deploys Agent1MonitoringFunction.
+   - `pipeline-agent2.yml`: Deploys Agent2EventClassifier.
+   - `pipeline-agent3.yml`: Deploys Agent3Runner.
+   - `pipeline-agent4.yml`: Deploys Agent4Auditing.
+   - `pipeline-agent5.yml`: Deploys Agent5Notifier.
+   - `pipeline-agent6.yml`: Deploys Agent6Decision.
+   - `pipeline-infrastructure.yml`: Deploys shared infrastructure components.
+
+2. Configure pipeline variables as needed for your environment.
+
+3. Run the pipelines to build, test, and deploy the respective agents or infrastructure.
+
+Each pipeline automates the deployment process, ensuring consistency and efficiency.
 
 ## Usage
 ### Agent0ScriptingAPI
