@@ -5,6 +5,23 @@ using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Interfaces.Classification;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using AzureOperationsAgents.Core.Models;
+using System;
+
+// Define a static class to hold agent metadata and configuration
+public static class Agent2Metadata
+{
+    public static IAgentMetadata Metadata { get; set; } = new AgentMetadata
+    {
+        Id = $"Agent2-{Guid.NewGuid().ToString().Substring(0, 8)}",
+        Name = $"Event Classifier Agent-{Guid.NewGuid().ToString().Substring(0, 8)}",
+        Version = "1.0.0",
+        Status = "Idle",
+        LastRunTime = DateTime.MinValue
+    };
+
+    public static AgentConfig Config { get; set; } = new AgentConfig();
+}
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -27,4 +44,4 @@ var host = new HostBuilder()
     })
     .Build();
 
-host.Run(); 
+host.Run();
