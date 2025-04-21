@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "Azure Operations UI",
+    "agents": "Agents",
+    "audit": "Audit",
+    "queries": "Live Queries"
+  },
+  "agent": {
+    "status": {
+      "Active": "Active",
+      "Inactive": "Inactive",
+      "Running": "Running",
+      "Stopped": "Stopped",
+      "Error": "Error",
+      "Unknown": "Unknown"
+    },
+    "type": {
+      "Script": "Script",
+      "Monitor": "Monitor",
+      "Classification": "Classification",
+      "Run": "Run",
+      "Audit": "Audit",
+      "Notify": "Notify",
+      "Decide": "Decide"
+    },
+    "groupBy": {
+      "label": "Group By",
+      "none": "None",
+      "status": "Status",
+        "type": "Type"
+    },
+    "sort": {
+      "enable": "Enable Sorting",
+        "disable": "Disable Sorting",
+      "reset": "Reset Sorting"
+    }
+  }
+  ,
+  "chat": {
+    "title": "Live Queries",
+    "placeholder": "Type your message here...",
+    "send": "Send",
+    "clear": "Clear",
+    "loading": "Loading...",
+    "error": "Error loading chat history.",
+    "noMessages": "No messages yet.",
+    "youAsked": "You asked",
+    "history": "Chat History",
+    "showHistory": "Show History",
+    "hideHistory": "Hide History",
+    "confirmClearTitle": "Clear History",
+    "confirmClearMessage": "This will permanently delete your chat history. Do you want to continue?",
+    "confirm": "Yes",
+    "cancel": "Cancel"
+  }
+}

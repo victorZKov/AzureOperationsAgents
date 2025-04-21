@@ -1,0 +1,56 @@
+{
+  "app": {
+    "title": "Interfaz de Operaciones Azure",
+    "agents": "Agentes",
+    "audit": "Auditoría",
+    "queries": "Consultas en tiempo real"
+  },
+  "agent": {
+    "status": {
+      "Active": "Activo",
+      "Inactive": "Inactivo",
+      "Running": "Ejecutándose",
+      "Stopped": "Detenido",
+      "Error": "Error",
+      "Unknown": "Desconocido"
+    },
+    "type": {
+      "Script": "Script",
+      "Monitor": "Monitor",
+      "Classification": "Clasificación",
+      "Run": "Ejecutar",
+      "Audit": "Auditar",
+      "Notify": "Notificar",
+      "Decide": "Decidir"
+    },
+    "groupBy": {
+        "label": "Agrupar por",
+      "none": "Ninguno",
+      "status": "Estado",
+      "type": "Tipo"
+    },
+    "sort": {
+      "enable": "Habilitar ordenación",
+        "disable": "Deshabilitar ordenación",
+        "reset": "Restablecer ordenación"
+    }
+  }
+  ,
+    "chat": {
+        "title": "Consultas en tiempo real",
+        "placeholder": "Escribe tu mensaje aquí...",
+        "send": "Enviar",
+        "clear": "Limpiar",
+        "loading": "Cargando...",
+        "error": "Error al cargar el historial del chat.",
+        "noMessages": "No hay mensajes aún.",
+        "youAsked": "Has preguntado",
+    "history": "Historial del chat",
+    "showHistory": "Mostrar historial",
+    "hideHistory": "Ocultar historial",
+    "confirmClearTitle": "Limpiar historial",
+    "confirmClearMessage": "Esto eliminará permanentemente el historial del chat. ¿Desea continuar?",
+    "confirm": "Sí",
+    "cancel": "Cancelar"
+  }
+}
