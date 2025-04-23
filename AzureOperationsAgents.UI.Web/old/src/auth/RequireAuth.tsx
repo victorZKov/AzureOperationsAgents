@@ -9,13 +9,17 @@ export const RequireAuth = ({ children }: { children: JSX.Element }) => {
     const isAuthenticated = useIsAuthenticated();
     const { inProgress } = useMsal();
 
+    console.log('REQUIREAUTH: => RequireAuth component rendered');
+    console.log('REQUIREAUTH: => isAuthenticated:', isAuthenticated);
+    console.log('REQUIREAUTH: => inProgress:', inProgress);
+    
     if (inProgress !== InteractionStatus.None) {
         return <LoadingScreen />;
     }
 
     // If not authenticated, redirect to login page
     if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+        return <Navigate to="/liveQueries" replace />;
     }
 
     return children;

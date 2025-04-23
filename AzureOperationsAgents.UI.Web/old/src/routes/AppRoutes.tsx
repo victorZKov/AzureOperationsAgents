@@ -2,13 +2,13 @@ import { Routes, Route } from 'react-router-dom';
 import Agents from '../pages/Agents';
 import Audit from '../pages/Audit';
 import LiveQueries from '../pages/LiveQueries';
-import Login from '../pages/Login';
+//import Login from '../pages/Login';
 import { RequireAuth } from '../auth/RequireAuth';
 import Settings from '../pages/Settings';
 
 export const AppRoutes = () => (
     <Routes>
-        <Route path="/login" element={<Login />} />
+        {/*<Route path="/login" element={<Login />} />*/}
         <Route
             path="/"
             element={
@@ -26,7 +26,7 @@ export const AppRoutes = () => (
             }
         />
         <Route
-            path="/live-queries"
+            path="/liveQueries"
             element={
                 <RequireAuth>
                     <LiveQueries />

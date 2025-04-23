@@ -11,4 +11,9 @@
         <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="8.0.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <_ContentIncludedByDefault Remove="src\i18n\en.json" />
+      <_ContentIncludedByDefault Remove="src\i18n\es.json" />
+    </ItemGroup>
+
 </Project>
