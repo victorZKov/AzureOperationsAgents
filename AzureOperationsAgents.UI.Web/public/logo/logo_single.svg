@@ -1,0 +1,11 @@
+<svg height="512" viewBox="0 0 512 512" width="1024" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    
+    <g fill="none" fill-rule="evenodd" transform="translate(14 128)">
+        <text x="50" y="100" font-family="Roboto, sans-serif" font-size="480" fill="yellow" text-anchor="middle" dominant-baseline="middle">
+            O
+        </text>
+        <text x="0" y="100" font-family="Roboto, sans-serif" font-size="480" fill="purple" text-anchor="middle" dominant-baseline="middle">
+            C
+        </text>
+    </g>
+</svg>

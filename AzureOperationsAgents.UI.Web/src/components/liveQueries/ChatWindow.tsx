@@ -1,14 +1,16 @@
-// /src/components/livequeries/ChatWindow.tsx
-import { 
-    Box, Paper, Stack, IconButton, Tooltip } from '@mui/material';
+import { Box, Paper, Stack, IconButton, Tooltip } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
-//import PushPinIcon from '@mui/icons-material/PushPin';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import ChatMessage from "./ChatMessage.tsx";
-import ChatInput from "./ChatInput.tsx";
-import ChatHistoryPanel from './ChatHistoryPanel.tsx';
+import ChatMessage from "./ChatMessage";
+import ChatInput from "./ChatInput";
+import ChatHistoryPanel from "./ChatHistoryPanel";
+import ModelSelector from './ModelSelector';
+import AgentSelector from './AgentSelector';
+import terraformAgentPrompt from "../../constants/TerraformAgentPrompt";
+import azureOperationsAgentPrompt from "../../constants/AzureOperationsAgentPrompt";
+import { sendMessageToOllama } from "../../api/ollamaService";
 
 interface Message {
     role: 'user' | 'system';
@@ -20,38 +22,69 @@ export default function ChatWindow() {
     const [messages, setMessages] = useState<Message[]>([]);
     const [historyVisible, setHistoryVisible] = useState(true);
     const [historyPinned, setHistoryPinned] = useState(false);
+    const [selectedModel, setSelectedModel] = useState('deepseek-r1:latest');
+    const [selectedAgent, setSelectedAgent] = useState('terraform');
+
+    const bottomRef = useRef<HTMLDivElement | null>(null);
+
     const [history, setHistory] = useState<Message[][]>(() => {
-      const saved = localStorage.getItem('chatHistory');
-      return saved ? JSON.parse(saved) : [];
+        const saved = localStorage.getItem('chatHistory');
+        return saved ? JSON.parse(saved) : [];
     });
 
-    const handleSend = (text: string) => {
-        const userMessage: Message = { role: 'user', content: text };
-        setMessages((prev) => [...prev, userMessage]);
 
-      // Simulated system response
-      setTimeout(() => {
-const systemMessage: Message = { role: 'system', content: `${t('chat.youAsked')}: "${text}"` };
-setMessages((prev) => [...prev, systemMessage]);
-      }, 1000);
+    const handleSend = async (text: string) => {
+        // Add user message
+        setMessages(prev => [...prev, { role: 'user', content: text }]);
+        // Add placeholder for system message
+        setMessages(prev => [...prev, { role: 'system', content: '' }]);
+
+        const systemMsgIndex = messages.length + 1;
+        const systemPrompt =
+            selectedAgent === 'terraform' ? terraformAgentPrompt : azureOperationsAgentPrompt;
+
+        const sendPrompt = `${systemPrompt.trim()}\n\nUser: ${text}`;
+        try {
+            await sendMessageToOllama(sendPrompt, (chunk) => {
+                setMessages(prevMessages => {
+                    if (!prevMessages[systemMsgIndex]) {
+                        return [...prevMessages, { role: 'system', content: chunk }];
+                    }
+                    const updated = [...prevMessages];
+                    updated[systemMsgIndex] = {
+                        ...updated[systemMsgIndex],
+                        content: (updated[systemMsgIndex].content || '') + chunk
+                    };
+                    return updated;
+                });
+            }, selectedModel);
+
+            // ✅ Scroll when finished
+            bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+
+            // ✅ Add "response completed" message
+            setMessages(prev => [...prev, { role: 'system', content: '[✔] Response completed.' }]);
+
+        } catch {
+            setMessages(prev => [...prev, { role: 'system', content: 'Error: Unable to get a response.' }]);
+        }
     };
 
     const handleNewConversation = () => {
-      if (messages.length > 0) {
-        const newHistory = [...history, messages];
-        setHistory(newHistory);
-        localStorage.setItem('chatHistory', JSON.stringify(newHistory));
-      }
-      setMessages([]);
+        if (messages.length > 0) {
+            const newHistory = [...history, messages];
+            setHistory(newHistory);
+            localStorage.setItem('chatHistory', JSON.stringify(newHistory));
+        }
+        setMessages([]);
     };
 
     const handleSelectConversation = (selectedMessages: Message[]) => {
-      setMessages(selectedMessages);
+        setMessages(selectedMessages);
     };
 
     return (
         <Box sx={{ display: 'flex', height: '70vh' }}>
-            {/* Chat principal */}
             <Paper sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column' }}>
                 <Box display="flex" justifyContent="flex-end" gap={1} mb={1}>
                     <Tooltip title={t('chat.clear')}>
@@ -60,16 +93,21 @@ setMessages((prev) => [...prev, systemMessage]);
                         </IconButton>
                     </Tooltip>
                     <Tooltip title={historyVisible ? t('chat.hideHistory') : t('chat.showHistory')}>
-                    <IconButton onClick={() => setHistoryVisible(prev => !prev)}>
-                        <MenuOpenIcon />
-                    </IconButton>
+                        <IconButton onClick={() => setHistoryVisible(prev => !prev)}>
+                            <MenuOpenIcon />
+                        </IconButton>
                     </Tooltip>
-                    
                 </Box>
+                
+                <ModelSelector value={selectedModel} onChange={setSelectedModel} />
+
+                <AgentSelector value={selectedAgent} onChange={setSelectedAgent} />
+                
                 <Stack spacing={1} sx={{ flexGrow: 1, overflowY: 'auto', mb: 2 }}>
                     {messages.map((msg, index) => (
                         <ChatMessage key={index} role={msg.role} content={msg.content} />
                     ))}
+                    <div ref={bottomRef} />
                 </Stack>
                 <ChatInput
                     onSend={handleSend}
@@ -79,7 +117,6 @@ setMessages((prev) => [...prev, systemMessage]);
                 />
             </Paper>
 
-            {/* Historial lateral */}
             {historyVisible && (
                 <ChatHistoryPanel
                     history={history}

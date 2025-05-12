@@ -1,0 +1,15 @@
+node_modules
+build
+/tsconfig.node.json
+/yarn.lock
+/.env
+# Node.js-related files
+.npm
+.cache
+.nvm# TypeScript-related files
+*.tsbuildinfo
+
+# JavaScript-related files
+*.js.map
+*.d.ts
+*.d.ts.map

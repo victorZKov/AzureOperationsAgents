@@ -1,0 +1,53 @@
+{
+  "name": "Colorea App",
+  "short_name": "Colorea",
+  "display": "fullscreen",
+  "scope": "/",
+  "start_url": "/",
+  "id": "ie.kovimatic.colorea",
+  "description": "Colorea es una plataforma en línea que ofrece la posibilidad de que los niños generen plantillas de dibujos lineales para imprimir y colorear. Perfecta para que los niños expresen su creatividad.",
+  "theme_color": "#000000",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "favicon/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/favicon-16x16.png",
+      "sizes": "16x16",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/favicon-32x32.png",
+      "sizes": "32x32",
+      "type": "image/png"
+    },
+    {
+      "src": "favicon/favicon.ico",
+      "sizes": "48x48",
+      "type": "image/x-icon"
+    }
+  ],
+  "dir": "ltr",
+  "lang": "es",
+  "categories": [
+    "education",
+    "entertainment",
+    "kids"
+  ],
+  "orientation": "natural"
+}
+
+

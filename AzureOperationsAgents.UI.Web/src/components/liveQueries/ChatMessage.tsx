@@ -1,27 +1,16 @@
-// /src/components/livequeries/ChatMessage.tsx
-import { Box, Typography, Paper } from '@mui/material';
+// ChatMessage.tsx
+import React from 'react';
+import ReactMarkdown from 'react-markdown';
 
-interface Props {
+interface ChatMessageProps {
     role: 'user' | 'system';
     content: string;
 }
 
-export default function ChatMessage({ role, content }: Props) {
-    const isUser = role === 'user';
-
+export default function ChatMessage({ role, content }: ChatMessageProps) {
     return (
-        <Box display="flex" justifyContent={isUser ? 'flex-end' : 'flex-start'}>
-            <Paper
-                elevation={1}
-                sx={{
-                    p: 1.5,
-                    maxWidth: '70%',
-                    bgcolor: isUser ? 'primary.light' : 'grey.100',
-                    color: isUser ? 'white' : 'text.primary',
-                }}
-            >
-                <Typography variant="body2">{content}</Typography>
-            </Paper>
-        </Box>
+        <div className={role === 'user' ? 'user-message' : 'system-message'}>
+            <ReactMarkdown>{content}</ReactMarkdown>
+        </div>
     );
 }
