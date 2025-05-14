@@ -1,0 +1,75 @@
+﻿version: '3.9'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: azureagents-db
+    environment:
+      - SA_PASSWORD=Your_strong_password123
+      - ACCEPT_EULA=Y
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlvolume:/var/opt/mssql
+    networks:
+      - backendnet
+
+  backend:
+    build:
+      context: .
+      dockerfile: AzureOperationsAgents.UI.Backend/Dockerfile
+    container_name: azureagents-api
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AgentsDb;User Id=sa;Password=Your_strong_password123;
+    depends_on:
+      - sqlserver
+    ports:
+      - "8080:80"
+    networks:
+      - backendnet
+      
+  scripting:
+    build:
+      context: .
+      dockerfile: AzureOperationsAgents.Agent0ScriptingAPI/Dockerfile
+    container_name: azureagents-agent0
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AgentsDb;User Id=sa;Password=Your_strong_password123;
+    depends_on:
+      - sqlserver
+    networks:
+      - backendnet
+      
+  classifier:
+    build:
+      context: .
+      dockerfile: AzureOperationsAgents.Agent2EventClassifier/Dockerfile
+    container_name: azureagents-classifier
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AgentsDb;User Id=sa;Password=Your_strong_password123;
+      - OLLAMA_API=http://ollama:11434
+      - ServiceBusConnection=your_service_bus_connection_string
+    depends_on:
+      - sqlserver
+      - ollama
+    networks:
+      - backendnet
+        
+        
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - backendnet
+
+volumes:
+  sqlvolume:
+  ollama_data:
+
+networks:
+  backendnet:
