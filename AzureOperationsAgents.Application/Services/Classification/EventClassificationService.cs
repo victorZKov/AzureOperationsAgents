@@ -1,104 +1,92 @@
-using Azure.AI.OpenAI;
-using AzureOperationsAgents.Core.Interfaces;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using AzureOperationsAgents.Core.Interfaces.Classification;
-using AzureOperationsAgents.Core.Models;
 using AzureOperationsAgents.Core.Models.Classification;
+using AzureOperationsAgents.Imfrastructure.Interfaces;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-
-namespace AzureOperationsAgents.Application.Services.Classification;
 
 public class EventClassificationService : IEventClassificationService
 {
-    private readonly OpenAIClient _openAIClient;
-    private readonly string _deploymentName;
+    private readonly HttpClient _httpClient;
     private readonly ILogger<EventClassificationService> _logger;
+    private readonly IEventClassificationRepository _repository;
 
     public EventClassificationService(
-        OpenAIClient openAIClient,
-        IOptions<EventClassificationServiceOptions> options,
-        ILogger<EventClassificationService> logger)
+        HttpClient httpClient,
+        ILogger<EventClassificationService> logger,
+        IEventClassificationRepository repository)
     {
-        _openAIClient = openAIClient;
-        _deploymentName = options.Value.DeploymentName;
+        _httpClient = httpClient;
         _logger = logger;
+        _repository = repository;
     }
-    
 
-    public async Task<EventClassification> ClassifyEventAsync(EventClassification eventData)
+    public async Task<EventClassification> ClassifyEventAsync(EventClassification input)
     {
+        var systemPrompt = """
+            You are a backend service that classifies system events.
+            Given the event context, output a JSON object with the following fields:
+            - category: short event category
+            - severity: L1, L2, or L3
+            - confidence: a number from 0 to 1
+            - classificationReason: brief explanation
+            - suggestedActions: a JSON array of string actions
+        """;
+
+        var userPrompt = $"Event Data:\n{JsonSerializer.Serialize(input.EventData, new JsonSerializerOptions { WriteIndented = true })}";
+
+        var payload = new
+        {
+            model = "mistral:latest",
+            prompt = $"{systemPrompt}\n\n{userPrompt}",
+            stream = false
+        };
+
+        var requestContent = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json");
+        var response = await _httpClient.PostAsync("http://localhost:11434/api/generate", requestContent);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Ollama error: {Error}", error);
+            throw new Exception($"Ollama failed: {response.StatusCode}");
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+
+        EventClassification enriched;
         try
         {
-            var prompt = GenerateClassificationPrompt(eventData);
-            
-            
-
-            var options =  new ChatCompletionsOptions
-                {
-                    Messages =
-                    {
-                        new ChatRequestSystemMessage("Eres un experto en clasificación de eventos de Azure. Analiza el evento y proporciona una clasificación detallada."),
-                        new ChatRequestSystemMessage(prompt)
-                    },
-                    Temperature = 0.7f,
-                    MaxTokens = 800
-                };
-
-                var chatCompletions = await _openAIClient.GetChatCompletionsAsync(options);
-                var response = chatCompletions.Value.Choices[0].Message.Content;
-
-            return ParseClassificationResponse(eventData, response);
+            var parsed = JsonSerializer.Deserialize<OllamaResponse>(json);
+            enriched = JsonSerializer.Deserialize<EventClassification>(parsed?.Response ?? "") ?? throw new Exception("Empty or invalid classification");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al clasificar el evento {EventId}", eventData.EventId);
+            _logger.LogError(ex, "Failed to parse classification response");
             throw;
         }
+
+        enriched.EventId = input.EventId;
+        enriched.Source = input.Source;
+        enriched.Timestamp = input.Timestamp;
+        enriched.EventData = input.EventData;
+
+        await _repository.SaveAsync(enriched);
+        return enriched;
     }
 
-    public Task<EventClassification> GetClassificationAsync(string id)
+    public Task<EventClassification> GetClassificationAsync(string id) =>
+        _repository.GetByIdAsync(id);
+
+    public Task<List<EventClassification>> GetClassificationsByCategoryAsync(string category) =>
+        _repository.GetByCategoryAsync(category);
+
+    public Task<List<EventClassification>> GetClassificationsBySeverityAsync(string severity) =>
+        _repository.GetBySeverityAsync(severity);
+
+    private class OllamaResponse
     {
-        throw new NotImplementedException();
+        public string Response { get; set; } = string.Empty;
     }
-
-    public Task<List<EventClassification>> GetClassificationsByCategoryAsync(string category)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<List<EventClassification>> GetClassificationsBySeverityAsync(string severity)
-    {
-        throw new NotImplementedException();
-    }
-
-    private string GenerateClassificationPrompt(EventClassification eventData)
-    {
-        return $@"
-Evento a clasificar:
-ID: {eventData.EventId}
-Origen: {eventData.Source}
-Timestamp: {eventData.Timestamp}
-Datos del evento: {System.Text.Json.JsonSerializer.Serialize(eventData.EventData)}
-
-Por favor, clasifica este evento proporcionando:
-1. Categoría (ej: Seguridad, Rendimiento, Disponibilidad, etc.)
-2. Severidad (Critical, High, Medium, Low)
-3. Razón de la clasificación
-4. Acciones sugeridas (lista de acciones recomendadas)
-";
-    }
-
-    private EventClassification ParseClassificationResponse(EventClassification eventData, string response)
-    {
-        // Aquí implementaríamos la lógica para parsear la respuesta de OpenAI
-        // y asignar los valores correspondientes al objeto EventClassification
-        // Por simplicidad, estamos usando valores por defecto
-        eventData.Category = "Seguridad";
-        eventData.Severity = "High";
-        eventData.Confidence = 0.95;
-        eventData.ClassificationReason = "El evento muestra un patrón de comportamiento sospechoso";
-        eventData.SuggestedActions = new List<string> { "Revisar logs de seguridad", "Notificar al equipo de seguridad" };
-
-        return eventData;
-    }
-} 
+}

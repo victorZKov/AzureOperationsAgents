@@ -1,15 +1,19 @@
-using System;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.AI.OpenAI;
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Core.Models.Scripting;
+using Microsoft.Extensions.Logging;
 
 namespace AzureOperationsAgents.Application.Services.Scripting;
 
 public class ScriptGenerationService : IScriptGenerationService
 {
-    private readonly OpenAIClient _openAIClient;
+    private readonly HttpClient _httpClient;
     private readonly IScriptRepository _scriptRepository;
+    private readonly ILogger<ScriptGenerationService> _logger;
+
     private const string SYSTEM_PROMPT = @"You are an expert in Azure and Azure DevOps automation. 
 Generate clean, production-ready scripts based on the following guidelines:
 - Support both Azure CLI and Azure DevOps CLI
@@ -18,33 +22,31 @@ Generate clean, production-ready scripts based on the following guidelines:
 - Make reasonable assumptions and document them in comments
 - Ensure the output is valid and executable";
 
-    public ScriptGenerationService(OpenAIClient openAIClient, IScriptRepository scriptRepository)
+    public ScriptGenerationService(HttpClient httpClient, IScriptRepository scriptRepository, ILogger<ScriptGenerationService> logger)
     {
-        _openAIClient = openAIClient;
+        _httpClient = httpClient;
         _scriptRepository = scriptRepository;
+        _logger = logger;
     }
 
     public async Task<Script> GenerateScriptAsync(string prompt, ScriptType preferredType)
     {
-        var options = new ChatCompletionsOptions
+        var combinedPrompt = $"{SYSTEM_PROMPT}\n\nGenerate a {preferredType} script for the following:\n{prompt}";
+
+        var payload = new
         {
-            DeploymentName = "gpt-4",
-            Messages =
-            {
-                new ChatRequestSystemMessage(SYSTEM_PROMPT),
-                new ChatRequestUserMessage($"Generate a {preferredType} script for: {prompt}")
-            },
-            Temperature = 0.7f,
-            MaxTokens = 2000
+            model = "mistral:latest",
+            prompt = combinedPrompt,
+            stream = false
         };
 
-        var chatCompletions = await _openAIClient.GetChatCompletionsAsync(options);
-        var generatedContent = chatCompletions.Value.Choices[0].Message.Content;
-        
+        var response = await SendOllamaRequest(payload);
+        var generated = response?.Response?.Trim() ?? "[empty]";
+
         var script = new Script
         {
             Name = prompt.Length > 50 ? prompt[..50] + "..." : prompt,
-            Content = generatedContent,
+            Content = generated,
             Type = preferredType,
             CreatedAt = DateTime.UtcNow,
             IsSuccessful = true
@@ -55,23 +57,27 @@ Generate clean, production-ready scripts based on the following guidelines:
 
     public async Task<bool> ValidateScriptAsync(Script script)
     {
-        var options = new ChatCompletionsOptions
+        var validationPrompt = $@"{SYSTEM_PROMPT}
+Validate the following {script.Type} script for correctness and best practices.
+Respond only with 'VALID' or the validation issues found.
+
+Script:
+{script.Content}";
+
+        var payload = new
         {
-            DeploymentName = "gpt-4",
-            Messages =
-            {
-                new ChatRequestSystemMessage(SYSTEM_PROMPT + "\nYour task is to validate if the provided script is valid and follows best practices."),
-                new ChatRequestUserMessage($"Validate this {script.Type} script:\n{script.Content}")
-            },
-            Temperature = 0.3f
+            model = "mistral:latest",
+            prompt = validationPrompt,
+            stream = false
         };
 
-        var chatCompletions = await _openAIClient.GetChatCompletionsAsync(options);
-        var validation = chatCompletions.Value.Choices[0].Message.Content;
-        var isValid = !validation.ToLower().Contains("error") && !validation.ToLower().Contains("invalid");
+        var response = await SendOllamaRequest(payload);
+        var text = response?.Response?.ToLower() ?? "";
+
+        var isValid = text.Contains("valid") && !text.Contains("error") && !text.Contains("invalid");
 
         script.IsSuccessful = isValid;
-        script.ErrorMessage = isValid ? null : validation;
+        script.ErrorMessage = isValid ? null : text;
         await _scriptRepository.UpdateAsync(script);
 
         return isValid;
@@ -79,23 +85,47 @@ Generate clean, production-ready scripts based on the following guidelines:
 
     public async Task<Script> RefineScriptAsync(Script script, string feedback)
     {
-        var options = new ChatCompletionsOptions
+        var prompt = $@"{SYSTEM_PROMPT}
+Here is the original script:
+{script.Content}
+
+Refine the script based on the following feedback:
+{feedback}";
+
+        var payload = new
         {
-            DeploymentName = "gpt-4",
-            Messages =
-            {
-                new ChatRequestSystemMessage(SYSTEM_PROMPT),
-                new ChatRequestAssistantMessage(script.Content),
-                new ChatRequestUserMessage($"Refine this script based on the following feedback: {feedback}")
-            },
-            Temperature = 0.7f,
-            MaxTokens = 2000
+            model = "mistral:latest",
+            prompt = prompt,
+            stream = false
         };
 
-        var chatCompletions = await _openAIClient.GetChatCompletionsAsync(options);
-        script.Content = chatCompletions.Value.Choices[0].Message.Content;
+        var response = await SendOllamaRequest(payload);
+        script.Content = response?.Response?.Trim() ?? script.Content;
         script.LastModifiedAt = DateTime.UtcNow;
-        
+
         return await _scriptRepository.UpdateAsync(script);
     }
-} 
+
+    private async Task<OllamaResponse?> SendOllamaRequest(object payload)
+    {
+        var requestJson = JsonSerializer.Serialize(payload);
+        var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PostAsync("/api/generate", content);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var error = await response.Content.ReadAsStringAsync();
+            _logger.LogError("Ollama error: {Error}", error);
+            throw new Exception($"Ollama returned {response.StatusCode}");
+        }
+
+        var json = await response.Content.ReadAsStringAsync();
+        return JsonSerializer.Deserialize<OllamaResponse>(json);
+    }
+
+    private class OllamaResponse
+    {
+        public string Response { get; set; } = "";
+    }
+}

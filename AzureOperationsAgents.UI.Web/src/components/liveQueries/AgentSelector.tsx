@@ -8,7 +8,8 @@ interface Props {
 
 const agentOptions = [
     { label: 'Terraform Agent', value: 'terraform' },
-    { label: 'Azure Ops Agent', value: 'azureOps' }
+    { label: 'Azure Ops Agent', value: 'azureOps' },
+    { label: 'PowerShell Agent', value: 'powershell' },
 ];
 
 export default function AgentSelector({ value, onChange }: Props) {

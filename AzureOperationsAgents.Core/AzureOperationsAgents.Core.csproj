@@ -7,6 +7,8 @@
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.8.3" />
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.48.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="2.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
+  
 </Project> 

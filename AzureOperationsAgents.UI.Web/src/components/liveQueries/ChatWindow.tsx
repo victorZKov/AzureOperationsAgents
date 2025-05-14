@@ -8,8 +8,6 @@ import ChatInput from "./ChatInput";
 import ChatHistoryPanel from "./ChatHistoryPanel";
 import ModelSelector from './ModelSelector';
 import AgentSelector from './AgentSelector';
-import terraformAgentPrompt from "../../constants/TerraformAgentPrompt";
-import azureOperationsAgentPrompt from "../../constants/AzureOperationsAgentPrompt";
 import { sendMessageToOllama } from "../../api/ollamaService";
 
 interface Message {
@@ -40,12 +38,9 @@ export default function ChatWindow() {
         setMessages(prev => [...prev, { role: 'system', content: '' }]);
 
         const systemMsgIndex = messages.length + 1;
-        const systemPrompt =
-            selectedAgent === 'terraform' ? terraformAgentPrompt : azureOperationsAgentPrompt;
-
-        const sendPrompt = `${systemPrompt.trim()}\n\nUser: ${text}`;
+        
         try {
-            await sendMessageToOllama(sendPrompt, (chunk) => {
+            await sendMessageToOllama(text, (chunk) => {
                 setMessages(prevMessages => {
                     if (!prevMessages[systemMsgIndex]) {
                         return [...prevMessages, { role: 'system', content: chunk }];
@@ -57,7 +52,7 @@ export default function ChatWindow() {
                     };
                     return updated;
                 });
-            }, selectedModel);
+            }, selectedModel, selectedAgent);
 
             // ✅ Scroll when finished
             bottomRef.current?.scrollIntoView({ behavior: 'smooth' });

@@ -1,7 +1,7 @@
 // routes
 import { paths } from 'src/routes/paths';
 
-export const VERSION = "0.3-beta";
+export const VERSION = "0.1";
 // API
 // ----------------------------------------------------------------------
 

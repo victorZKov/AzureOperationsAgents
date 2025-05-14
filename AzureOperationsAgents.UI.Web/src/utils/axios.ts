@@ -36,6 +36,15 @@ export const fetcher = async (url: string, config?: AxiosRequestConfig) => {
   }
 };
 
+export const post = async (url: string, data: any, config?: AxiosRequestConfig) => {
+  try {
+    const response = await api.post(url, data, config);
+    return response.data;
+  } catch (error: any) {
+    throw error.response?.data || error.message || "An error occurred";
+  }
+};
+
 // ----------------------------------------------------------------------
 
 export const endpoints = {
@@ -84,6 +93,10 @@ export const endpoints = {
     delete: '/agents/delete',
     favorite: '/agents/favorite',
     notfavorite: '/agents/notfavorite',
+
+  },
+  ollama: {
+    generate: '/GenerateFromOllama'
   },
 };
 

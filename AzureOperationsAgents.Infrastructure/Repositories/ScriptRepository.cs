@@ -1,128 +1,112 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Azure;
-using Azure.Data.Tables;
+using System.Data;
+using System.Data.SqlClient;
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Core.Models.Scripting;
+using Dapper;
+using Microsoft.Data.SqlClient;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories;
 
 public class ScriptRepository : IScriptRepository
 {
-    private readonly TableClient _tableClient;
+    private readonly string _connectionString;
 
     public ScriptRepository(string connectionString)
     {
-        _tableClient = new TableClient(connectionString, "Scripts");
-        _tableClient.CreateIfNotExists();
+        _connectionString = connectionString;
+        EnsureTableExists().GetAwaiter().GetResult(); // síncrono en constructor
     }
 
-    public async Task<Script> GetByIdAsync(Guid id)
+    private async Task EnsureTableExists()
     {
-        try
-        {
-            var response = await _tableClient.GetEntityAsync<ScriptEntity>("Scripts", id.ToString());
-            return response.Value.ToScript();
-        }
-        catch (Azure.RequestFailedException)
-        {
-            return null;
-        }
-    }
+        const string checkTableSql = @"
+            IF NOT EXISTS (
+                SELECT * FROM INFORMATION_SCHEMA.TABLES 
+                WHERE TABLE_NAME = 'Scripts'
+            )
+            BEGIN
+                CREATE TABLE Scripts (
+                    Id UNIQUEIDENTIFIER PRIMARY KEY,
+                    Name NVARCHAR(255) NOT NULL,
+                    Content NVARCHAR(MAX) NOT NULL,
+                    Type NVARCHAR(50) NOT NULL,
+                    CreatedAt DATETIME2 NOT NULL,
+                    LastModifiedAt DATETIME2 NULL,
+                    IsSuccessful BIT NOT NULL,
+                    ErrorMessage NVARCHAR(MAX) NULL
+                );
 
-    public async Task<IEnumerable<Script>> GetAllAsync()
-    {
-        var scripts = new List<Script>();
-        var results = _tableClient.QueryAsync<ScriptEntity>(filter: "");
+                CREATE INDEX IX_Scripts_Type ON Scripts(Type);
+                CREATE INDEX IX_Scripts_CreatedAt ON Scripts(CreatedAt);
+            END";
 
-        await foreach (var entity in results)
-        {
-            scripts.Add(entity.ToScript());
-        }
-
-        return scripts;
+        using var connection = new SqlConnection(_connectionString);
+        await connection.ExecuteAsync(checkTableSql);
     }
 
     public async Task<Script> AddAsync(Script script)
     {
-        var entity = ScriptEntity.FromScript(script);
-        await _tableClient.AddEntityAsync(entity);
+        const string sql = @"
+            INSERT INTO Scripts (Id, Name, Content, Type, CreatedAt, LastModifiedAt, IsSuccessful, ErrorMessage)
+            VALUES (@Id, @Name, @Content, @Type, @CreatedAt, @LastModifiedAt, @IsSuccessful, @ErrorMessage)";
+        
+        script.Id = Guid.NewGuid();
+        script.CreatedAt = DateTime.UtcNow;
+
+        using var connection = new SqlConnection(_connectionString);
+        await connection.ExecuteAsync(sql, script);
+
         return script;
     }
 
     public async Task<Script> UpdateAsync(Script script)
     {
-        var entity = ScriptEntity.FromScript(script);
-        await _tableClient.UpdateEntityAsync(entity, ETag.All);
+        const string sql = @"
+            UPDATE Scripts
+            SET Name = @Name,
+                Content = @Content,
+                Type = @Type,
+                LastModifiedAt = @LastModifiedAt,
+                IsSuccessful = @IsSuccessful,
+                ErrorMessage = @ErrorMessage
+            WHERE Id = @Id";
+
+        script.LastModifiedAt ??= DateTime.UtcNow;
+
+        using var connection = new SqlConnection(_connectionString);
+        await connection.ExecuteAsync(sql, script);
+
         return script;
+    }
+
+    public async Task<Script?> GetByIdAsync(Guid id)
+    {
+        const string sql = "SELECT * FROM Scripts WHERE Id = @Id";
+
+        using var connection = new SqlConnection(_connectionString);
+        return await connection.QuerySingleOrDefaultAsync<Script>(sql, new { Id = id });
+    }
+
+    public async Task<IEnumerable<Script>> GetAllAsync()
+    {
+        const string sql = "SELECT * FROM Scripts";
+
+        using var connection = new SqlConnection(_connectionString);
+        return await connection.QueryAsync<Script>(sql);
     }
 
     public async Task<bool> DeleteAsync(Guid id)
     {
-        try
-        {
-            await _tableClient.DeleteEntityAsync("Scripts", id.ToString());
-            return true;
-        }
-        catch (Azure.RequestFailedException)
-        {
-            return false;
-        }
+        const string sql = "DELETE FROM Scripts WHERE Id = @Id";
+
+        using var connection = new SqlConnection(_connectionString);
+        var affected = await connection.ExecuteAsync(sql, new { Id = id });
+        return affected > 0;
     }
 
     public async Task<IEnumerable<Script>> FindSimilarAsync(string content)
     {
-        // Implementación básica: devuelve todos los scripts
-        // En una implementación real, podrías usar Azure Cognitive Search o similar
+        // Placeholder — Devuelve todos por ahora
         return await GetAllAsync();
     }
 }
-
-public class ScriptEntity : ITableEntity
-{
-    public required string PartitionKey { get; set; }
-    public required string RowKey { get; set; }
-    public DateTimeOffset? Timestamp { get; set; }
-    public ETag ETag { get; set; }
-    public required string Name { get; set; }
-    public required string Content { get; set; }
-    public required string Type { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? LastModifiedAt { get; set; }
-    public bool IsSuccessful { get; set; }
-    public string? ErrorMessage { get; set; }
-
-    public static ScriptEntity FromScript(Script script)
-    {
-        if (script == null) throw new ArgumentNullException(nameof(script));
-        
-        return new ScriptEntity
-        {
-            PartitionKey = "Scripts",
-            RowKey = script.Id.ToString(),
-            Name = script.Name,
-            Content = script.Content,
-            Type = script.Type.ToString(),
-            CreatedAt = script.CreatedAt,
-            LastModifiedAt = script.LastModifiedAt,
-            IsSuccessful = script.IsSuccessful,
-            ErrorMessage = script.ErrorMessage
-        };
-    }
-
-    public Script ToScript()
-    {
-        return new Script
-        {
-            Id = Guid.Parse(RowKey),
-            Name = Name,
-            Content = Content,
-            Type = Enum.Parse<ScriptType>(Type),
-            CreatedAt = CreatedAt,
-            LastModifiedAt = LastModifiedAt,
-            IsSuccessful = IsSuccessful,
-            ErrorMessage = ErrorMessage
-        };
-    }
-} 

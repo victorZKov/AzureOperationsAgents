@@ -1,8 +1,12 @@
+using System.Security.Claims;
 using agentfactory.agents.AzureOperationsAgents.Core.Models.Backend;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 
-namespace agentfactory.agents.AzureOperationsAgents.UI.Backend.Functions;
+namespace AzureOperationsAgents.UI.Backend.Functions;
 
 public class OllamaFunctions
 {
@@ -14,65 +18,85 @@ public class OllamaFunctions
     }
 
     [Function("GenerateFromOllama")]
-    public async Task<IActionResult> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequest req,
-        FunctionContext executionContext)
+public async Task<HttpResponseData> Run(
+    [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+    FunctionContext executionContext)
+{
+    var logger = executionContext.GetLogger("OllamaFunctions");
+
+    var reader = new StreamReader(req.Body);
+    var body = await reader.ReadToEndAsync();
+    var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+
+    if (data is null 
+        || !data.TryGetValue("prompt", out var userPrompt) 
+        || !data.TryGetValue("model", out var model) 
+        || !data.TryGetValue("agent", out var agent))
     {
-        var identity = req.HttpContext?.User;
+        var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+        badResponse.WriteString("Missing prompt, model, or agent.");
+        return badResponse;
+    }
 
-        var userId = identity?.FindFirst("oid")?.Value ?? "unknown";
-        var userEmail = identity?.FindFirst("preferred_username")?.Value ?? "anonymous";
+    var systemPrompt = AgentPrompts.GetPrompt(agent);
+    var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
 
-        _logger.LogInformation($"Request made by: {userEmail} (OID: {userId})");
-        _logger.LogInformation("Ollama generate function triggered.");
-
-        using var reader = new StreamReader(req.Body);
-        var body = await reader.ReadToEndAsync();
-
-        if (string.IsNullOrWhiteSpace(body))
+    var requestContent = new StringContent(
+        System.Text.Json.JsonSerializer.Serialize(new
         {
-            return new BadRequestObjectResult("Missing request body.");
-        }
+            model = model,
+            prompt = fullPrompt,
+            stream = true // <-- aquí activas el streaming
+        }),
+        System.Text.Encoding.UTF8,
+        "application/json"
+    );
 
-        var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
-
-        if (data == null 
-            || !data.TryGetValue("prompt", out var userPrompt) 
-            || !data.TryGetValue("model", out var model) 
-            || !data.TryGetValue("agent", out var agent))
-        {
-            return new BadRequestObjectResult("Missing 'prompt', 'model', or 'agent' in body. Optional: include 'preference' as 'powershell' or 'terraform'.");
-        }
-
-        var systemPrompt = AgentPrompts.GetPrompt(agent);
-
-        if (data.TryGetValue("preference", out var preference))
-        {
-            _logger.LogInformation($"User prefers: {preference}");
-        }
-        else
-        {
-            _logger.LogInformation("No preference provided. Ask user if they prefer PowerShell or Terraform.");
-        }
-
-        var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
-
-        using var httpClient = new HttpClient();
-        var response = await httpClient.PostAsync("http://localhost:11434/api/generate", new StringContent(
+    var httpClient = new HttpClient();
+    
+    var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:11434/api/generate")
+    {
+        Content = new StringContent(
             System.Text.Json.JsonSerializer.Serialize(new
             {
                 model = model,
                 prompt = fullPrompt,
-                stream = false
-            }), System.Text.Encoding.UTF8, "application/json"));
+                stream = true // activamos el stream
+            }),
+            System.Text.Encoding.UTF8,
+            "application/json")
+    };
 
-        if (!response.IsSuccessStatusCode)
-        {
-            return new StatusCodeResult((int)response.StatusCode);
-        }
+    var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
 
-        var resultContent = await response.Content.ReadAsStringAsync();
-        return new OkObjectResult(resultContent);
+    if (!response.IsSuccessStatusCode)
+    {
+        var errorResponse = req.CreateResponse((System.Net.HttpStatusCode)response.StatusCode);
+        errorResponse.WriteString("Failed to stream from Ollama.");
+        return errorResponse;
     }
 
+    var streamResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
+    streamResponse.Headers.Add("Content-Type", "text/plain");
+
+    await using var responseStream = await response.Content.ReadAsStreamAsync();
+    await using var writer = new StreamWriter(streamResponse.Body);
+
+    using var readerStream = new StreamReader(responseStream);
+    while (!readerStream.EndOfStream)
+    {
+        var line = await readerStream.ReadLineAsync();
+        if (!string.IsNullOrWhiteSpace(line))
+        {
+            await writer.WriteLineAsync(line);
+            await writer.FlushAsync(); // <-- forza a que el chunk se mande
+        }
+    }
+
+    return streamResponse;
 }
+    
+    
+
+}
+
