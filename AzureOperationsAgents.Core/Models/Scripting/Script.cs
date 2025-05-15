@@ -18,4 +18,4 @@ public enum ScriptType
 {
     PowerShell,
     Bash
-} 
+}

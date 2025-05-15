@@ -1,0 +1,15 @@
+{
+  "profiles": {
+    "AzureOperationsAgents.Agent0Scripting": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7065"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker",
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "containerRunArguments": "--init",
+      "httpPort": 34959,
+      "useSSL": false
+    }
+  }
+}

@@ -12,8 +12,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Appli
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Infrastructure", "AzureOperationsAgents.Infrastructure\AzureOperationsAgents.Infrastructure.csproj", "{A3B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent0ScriptingAPI", "AzureOperationsAgents.Agent0ScriptingAPI\AzureOperationsAgents.Agent0ScriptingAPI.csproj", "{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent1MonitoringFunction", "AzureOperationsAgents.Agent1MonitoringFunction\AzureOperationsAgents.Agent1MonitoringFunction.csproj", "{A5B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent2EventClassifier", "AzureOperationsAgents.Agent2EventClassifier\AzureOperationsAgents.Agent2EventClassifier.csproj", "{41070C75-AF4D-42AB-9AA0-3B1B91B7B5E7}"
@@ -28,11 +26,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Terraform", "Terraform", "{5B2B1250-56DA-484F-8E75-5807A86184B0}"
 	ProjectSection(SolutionItems) = preProject
-		terraform\variables.tf = terraform\variables.tf
 		terraform\configuration\backend-config.tfvars = terraform\configuration\backend-config.tfvars
-		terraform\configuration\vars.tfvars = terraform\configuration\vars.tfvars
 		terraform\locals.tf = terraform\locals.tf
-		terraform\provider-variables.tf = terraform\provider-variables.tf
+		terraform\main.tf = terraform\main.tf
 		terraform\pipeline-agent0.yml = terraform\pipeline-agent0.yml
 		terraform\pipeline-agent1.yml = terraform\pipeline-agent1.yml
 		terraform\pipeline-agent2.yml = terraform\pipeline-agent2.yml
@@ -40,11 +36,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Terraform", "Terraform", "{
 		terraform\pipeline-agent4.yml = terraform\pipeline-agent4.yml
 		terraform\pipeline-agent5.yml = terraform\pipeline-agent5.yml
 		terraform\pipeline-agent6.yml = terraform\pipeline-agent6.yml
-		terraform\main.tf = terraform\main.tf
 		terraform\pipeline-infrastructure.yml = terraform\pipeline-infrastructure.yml
-		terraform\provider-main.tf = terraform\provider-main.tf
 		terraform\pipeline-UI.yml = terraform\pipeline-UI.yml
 		terraform\pipeline-UIBackend.yml = terraform\pipeline-UIBackend.yml
+		terraform\provider-main.tf = terraform\provider-main.tf
+		terraform\provider-variables.tf = terraform\provider-variables.tf
+		terraform\variables.tf = terraform\variables.tf
+		terraform\configuration\vars.tfvars = terraform\configuration\vars.tfvars
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.UI.Backend", "AzureOperationsAgents.UI.Backend\AzureOperationsAgents.UI.Backend.csproj", "{7495C419-0E88-4C64-85EC-866DAAC64DC5}"
@@ -57,6 +55,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AzureOperationsAgents.Agent0Scripting", "AzureOperationsAgents.Agent0Scripting\AzureOperationsAgents.Agent0Scripting.csproj", "{864F78EC-6CBE-4336-9E47-B38BA8457E82}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,10 +76,6 @@ Global
 		{A3B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A3B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A3B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{A5B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{A5B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A5B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -116,6 +112,10 @@ Global
 		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{47664C10-BF6B-4312-8E7A-65742645FD5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{864F78EC-6CBE-4336-9E47-B38BA8457E82}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{864F78EC-6CBE-4336-9E47-B38BA8457E82}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{864F78EC-6CBE-4336-9E47-B38BA8457E82}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{864F78EC-6CBE-4336-9E47-B38BA8457E82}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -124,7 +124,6 @@ Global
 		{A1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{A2B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{A3B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
-		{A4B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{A5B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{41070C75-AF4D-42AB-9AA0-3B1B91B7B5E7} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{C46CA7AF-0FFB-42E3-BACE-BA723CFB19BB} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
@@ -134,5 +133,6 @@ Global
 		{7495C419-0E88-4C64-85EC-866DAAC64DC5} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{7B01325F-AB10-4C34-AD1B-FA236ECAE5C1} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 		{47664C10-BF6B-4312-8E7A-65742645FD5C} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
+		{864F78EC-6CBE-4336-9E47-B38BA8457E82} = {B1B5A0A0-1A1A-4A1A-9A1A-1A1A1A1A1A1A}
 	EndGlobalSection
 EndGlobal
