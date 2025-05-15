@@ -1,21 +1,23 @@
-# Build stage
+FROM mcr.microsoft.com/azure-functions/dotnet-isolated:4-dotnet-isolated8.0 AS base
+WORKDIR /home/site/wwwroot
+EXPOSE 8080
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /source
+ARG BUILD_CONFIGURATION=Release
+WORKDIR /src
 
-# Copy everything and restore
-COPY . .
-RUN dotnet restore
+COPY AzureOperationsAgents.UI.Backend/ AzureOperationsAgents.UI.Backend/
+COPY AzureOperationsAgents.Application/ AzureOperationsAgents.Application/
+COPY AzureOperationsAgents.Core/ AzureOperationsAgents.Core/
+COPY AzureOperationsAgents.Infrastructure/ AzureOperationsAgents.Infrastructure/
 
-# Publish app
-RUN dotnet publish -c Release -o /app/publish
+WORKDIR /src/AzureOperationsAgents.UI.Backend
+RUN dotnet restore "./AzureOperationsAgents.UI.Backend.csproj"
+RUN dotnet publish "./AzureOperationsAgents.UI.Backend.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
-# Final stage
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
-WORKDIR /app
+FROM base AS final
+WORKDIR /home/site/wwwroot
 COPY --from=build /app/publish .
 
-# Expose port
-ENV AzureWebJobsScriptRoot=/app \
+ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true
-
-ENTRYPOINT ["dotnet", "AzureOperationsAgents.UI.Backend.dll"]

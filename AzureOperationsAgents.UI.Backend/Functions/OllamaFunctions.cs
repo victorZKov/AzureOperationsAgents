@@ -11,6 +11,7 @@ namespace AzureOperationsAgents.UI.Backend.Functions;
 public class OllamaFunctions
 {
     private readonly ILogger<OllamaFunctions> _logger;
+    private const string _baseUrl = "http://ollama:11434/api/generate";
 
     public OllamaFunctions(ILogger<OllamaFunctions> logger)
     {
@@ -18,45 +19,34 @@ public class OllamaFunctions
     }
 
     [Function("GenerateFromOllama")]
-public async Task<HttpResponseData> Run(
-    [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
-    FunctionContext executionContext)
-{
-    var logger = executionContext.GetLogger("OllamaFunctions");
-
-    var reader = new StreamReader(req.Body);
-    var body = await reader.ReadToEndAsync();
-    var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
-
-    if (data is null 
-        || !data.TryGetValue("prompt", out var userPrompt) 
-        || !data.TryGetValue("model", out var model) 
-        || !data.TryGetValue("agent", out var agent))
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post")]
+        HttpRequestData req,
+        FunctionContext executionContext)
     {
-        var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
-        badResponse.WriteString("Missing prompt, model, or agent.");
-        return badResponse;
-    }
+        var logger = executionContext.GetLogger("OllamaFunctions");
 
-    var systemPrompt = AgentPrompts.GetPrompt(agent);
-    var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
+        logger.LogInformation("***************** OllamaFunctions function processed a request.");
 
-    var requestContent = new StringContent(
-        System.Text.Json.JsonSerializer.Serialize(new
+        var reader = new StreamReader(req.Body);
+        var body = await reader.ReadToEndAsync();
+        var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(body);
+
+        if (data is null
+            || !data.TryGetValue("prompt", out var userPrompt)
+            || !data.TryGetValue("model", out var model)
+            || !data.TryGetValue("agent", out var agent))
         {
-            model = model,
-            prompt = fullPrompt,
-            stream = true // <-- aquí activas el streaming
-        }),
-        System.Text.Encoding.UTF8,
-        "application/json"
-    );
+            logger.LogError("Missing prompt, model, or agent.");
+            var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
+            badResponse.WriteString("Missing prompt, model, or agent.");
+            return badResponse;
+        }
 
-    var httpClient = new HttpClient();
-    
-    var request = new HttpRequestMessage(HttpMethod.Post, "http://localhost:11434/api/generate")
-    {
-        Content = new StringContent(
+        var systemPrompt = AgentPrompts.GetPrompt(agent);
+        var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
+
+        var requestContent = new StringContent(
             System.Text.Json.JsonSerializer.Serialize(new
             {
                 model = model,
@@ -64,39 +54,57 @@ public async Task<HttpResponseData> Run(
                 stream = true // activamos el stream
             }),
             System.Text.Encoding.UTF8,
-            "application/json")
-    };
+            "application/json"
+        );
 
-    var response = await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
+        logger.LogInformation($"Request to Ollama: {requestContent}");
 
-    if (!response.IsSuccessStatusCode)
-    {
-        var errorResponse = req.CreateResponse((System.Net.HttpStatusCode)response.StatusCode);
-        errorResponse.WriteString("Failed to stream from Ollama.");
-        return errorResponse;
-    }
+        var httpClient = new HttpClient();
 
-    var streamResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
-    streamResponse.Headers.Add("Content-Type", "text/plain");
-
-    await using var responseStream = await response.Content.ReadAsStreamAsync();
-    await using var writer = new StreamWriter(streamResponse.Body);
-
-    using var readerStream = new StreamReader(responseStream);
-    while (!readerStream.EndOfStream)
-    {
-        var line = await readerStream.ReadLineAsync();
-        if (!string.IsNullOrWhiteSpace(line))
+        var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
         {
-            await writer.WriteLineAsync(line);
-            await writer.FlushAsync(); // <-- forza a que el chunk se mande
+            Content = new StringContent(
+                System.Text.Json.JsonSerializer.Serialize(new
+                {
+                    model = model,
+                    prompt = fullPrompt,
+                    stream = true // activamos el stream
+                }),
+                System.Text.Encoding.UTF8,
+                "application/json")
+        };
+
+        var response =
+            await httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, CancellationToken.None);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorResponse = req.CreateResponse((System.Net.HttpStatusCode)response.StatusCode);
+            errorResponse.WriteString("Failed to stream from Ollama.");
+            return errorResponse;
         }
+
+        var streamResponse = req.CreateResponse(System.Net.HttpStatusCode.OK);
+        streamResponse.Headers.Add("Content-Type", "text/plain");
+
+        await using var responseStream = await response.Content.ReadAsStreamAsync();
+        await using var writer = new StreamWriter(streamResponse.Body);
+
+        using var readerStream = new StreamReader(responseStream);
+        while (!readerStream.EndOfStream)
+        {
+            var line = await readerStream.ReadLineAsync();
+            if (!string.IsNullOrWhiteSpace(line))
+            {
+                await writer.WriteLineAsync(line);
+                await writer.FlushAsync(); // <-- forza a que el chunk se mande
+            }
+        }
+
+        return streamResponse;
     }
 
-    return streamResponse;
-}
-    
-    
+
 
 }
 

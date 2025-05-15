@@ -1,6 +1,5 @@
-﻿version: '3.9'
-
-services:
+﻿services:
+  # Infra
   sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: azureagents-db
@@ -14,7 +13,19 @@ services:
     networks:
       - backendnet
 
+  ollama:
+    image: ollama/ollama
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./ollama_data:/root/.ollama
+    networks:
+      - backendnet
+
+  # Backend principal
   backend:
+#    platform: linux/amd64
     build:
       context: .
       dockerfile: AzureOperationsAgents.UI.Backend/Dockerfile
@@ -27,12 +38,14 @@ services:
       - "8080:80"
     networks:
       - backendnet
-      
+
+  # Agente 0 – Scripting
   scripting:
+#    platform: linux/amd64
     build:
       context: .
       dockerfile: AzureOperationsAgents.Agent0Scripting/Dockerfile
-    container_name: azureagents-agent0
+    container_name: scripting-agent0
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AgentsDb;User Id=sa;Password=Your_strong_password123;
@@ -40,12 +53,14 @@ services:
       - sqlserver
     networks:
       - backendnet
-      
+
+  # Agente 2 – Clasificador
   classifier:
+#    platform: linux/amd64
     build:
       context: .
       dockerfile: AzureOperationsAgents.Agent2EventClassifier/Dockerfile
-    container_name: azureagents-classifier
+    container_name: classifier-agent2
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=AgentsDb;User Id=sa;Password=Your_strong_password123;
       - OLLAMA_API=http://ollama:11434
@@ -55,18 +70,8 @@ services:
       - ollama
     networks:
       - backendnet
-        
-        
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ./ollama_data:/root/.ollama
-    networks:
-      - backendnet
 
+  # Frontend React
   ui:
     build:
       context: ./AzureOperationsAgents.UI.Web
@@ -76,13 +81,12 @@ services:
         VITE_MSAL_AUTHORITY: https://login.microsoftonline.com/cb40d1db-6342-4ccf-b6af-23848df0f8a2
         VITE_MSAL_REDIRECT_URI: http://localhost:3000/dashboard
         VITE_MSAL_SCOPES: api://AzureOperationsAgents/.default
-        VITE_HOST_API: http://azureagents-api
+        VITE_HOST_API: http://localhost:8080
     container_name: azureagents-ui
     ports:
       - "3000:80"
     networks:
       - backendnet
-
 
 volumes:
   sqlvolume:
