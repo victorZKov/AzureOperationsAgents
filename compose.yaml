@@ -10,7 +10,7 @@ services:
     ports:
       - "1433:1433"
     volumes:
-      - sqlvolume:/var/opt/mssql
+      - ./mssql_data:/var/opt/mssql
     networks:
       - backendnet
 
@@ -63,9 +63,26 @@ services:
     ports:
       - "11434:11434"
     volumes:
-      - ollama_data:/root/.ollama
+      - ./ollama_data:/root/.ollama
     networks:
       - backendnet
+
+  ui:
+    build:
+      context: ./AzureOperationsAgents.UI.Web
+      dockerfile: Dockerfile
+      args:
+        VITE_MSAL_CLIENT_ID: 22bb92e2-d778-4036-af44-233f4d804243
+        VITE_MSAL_AUTHORITY: https://login.microsoftonline.com/cb40d1db-6342-4ccf-b6af-23848df0f8a2
+        VITE_MSAL_REDIRECT_URI: http://localhost:3000/dashboard
+        VITE_MSAL_SCOPES: api://AzureOperationsAgents/.default
+        VITE_HOST_API: http://azureagents-api
+    container_name: azureagents-ui
+    ports:
+      - "3000:80"
+    networks:
+      - backendnet
+
 
 volumes:
   sqlvolume:
