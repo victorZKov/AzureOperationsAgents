@@ -84,3 +84,8 @@ _ReSharper*/
 # Rider
 .idea/
 *.sln.iml 
+/AzureOperationsAgents.UI.Web/dist
+/mssql_data/.system
+/ollama_data
+/AzureOperationsAgents.UI.Web/docker-composeup-log.txt
+/docker-compose-up-log.txt
