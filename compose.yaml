@@ -31,7 +31,7 @@ services:
   scripting:
     build:
       context: .
-      dockerfile: AzureOperationsAgents.Agent0ScriptingI/Dockerfile
+      dockerfile: AzureOperationsAgents.Agent0Scripting/Dockerfile
     container_name: azureagents-agent0
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
