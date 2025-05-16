@@ -1,6 +1,6 @@
-namespace agentfactory.agents.AzureOperationsAgents.Core.Models.Backend;
+namespace AzureOperationsAgents.Core.Models.Backend;
 
-public class AgentPrompts
+public static class AgentPrompts
 {
     public static string GetPrompt(string agent)
     {

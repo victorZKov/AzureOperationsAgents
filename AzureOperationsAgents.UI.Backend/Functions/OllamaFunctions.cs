@@ -1,9 +1,10 @@
 using System.Security.Claims;
-using agentfactory.agents.AzureOperationsAgents.Core.Models.Backend;
+using AzureOperationsAgents.Core.Models.Backend;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace AzureOperationsAgents.UI.Backend.Functions;
@@ -11,10 +12,15 @@ namespace AzureOperationsAgents.UI.Backend.Functions;
 public class OllamaFunctions
 {
     private readonly ILogger<OllamaFunctions> _logger;
-    private const string _baseUrl = "http://ollama:11434/api/generate";
 
-    public OllamaFunctions(ILogger<OllamaFunctions> logger)
+    private readonly string _baseUrl; 
+
+    public OllamaFunctions(ILogger<OllamaFunctions> logger, IConfiguration configuration)
     {
+        if (string.IsNullOrEmpty(configuration["OllamaServer"]))
+            _baseUrl = "http://localhost:11434/api/generate";
+        else
+            _baseUrl = $"{configuration["OllamaServer"]}/api/generate";
         _logger = logger;
     }
 
