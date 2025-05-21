@@ -1,33 +1,42 @@
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
-using AzureOperationsAgents.Application;
-using AzureOperationsAgents.Infrastructure;
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Application.Services.Scripting;
 using AzureOperationsAgents.Infrastructure.Repositories;
 
-var builder = FunctionsApplication.CreateBuilder(args);
+var host = Host.CreateDefaultBuilder()
+  .ConfigureAppConfiguration(config =>
+  {
+      config
+          .SetBasePath(Directory.GetCurrentDirectory())
+          .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+          .AddEnvironmentVariables();
+  })
+  .ConfigureServices(services =>
+  {
+      services.AddApplicationInsightsTelemetryWorkerService();
 
-// Configuración adicional si es necesario
-builder.Configuration
-    .SetBasePath(Directory.GetCurrentDirectory())
-    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-    .AddEnvironmentVariables();
+      services.AddHttpClient<IScriptGenerationService, ScriptGenerationService>(client =>
+      {
+          client.BaseAddress = new Uri("http://ollama:11434");
+      });
 
-builder.ConfigureFunctionsWebApplication();
+      //services.AddTransient<IScriptRepository, ScriptRepository>();
 
-builder.Services
-    .AddApplicationInsightsTelemetryWorkerService()
-    .ConfigureFunctionsApplicationInsights();
+      // Agrega CORS    
+      services.AddCors(options =>
+      {
+          options.AddDefaultPolicy(policy =>
+          {
+              policy
+                  .AllowAnyOrigin()   // O usa .WithOrigins("http://localhost:3000") si prefieres limitar    
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+          });
+      });
+  })
+  .ConfigureFunctionsWebApplication() // Updated to use ASP.NET Core Integration  
+  .Build();
 
-builder.Services.AddHttpClient<IScriptGenerationService, ScriptGenerationService>(client =>
-{
-    client.BaseAddress = new Uri("http://ollama:11434"); // Docker-internal host
-});
-
-builder.Services.AddTransient<IScriptRepository, ScriptRepository>();
-
-builder.Build().Run();
+host.Run();

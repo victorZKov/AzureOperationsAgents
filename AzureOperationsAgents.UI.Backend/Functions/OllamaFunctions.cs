@@ -13,7 +13,8 @@ public class OllamaFunctions
 {
     private readonly ILogger<OllamaFunctions> _logger;
 
-    private readonly string _baseUrl; 
+    private readonly string _baseUrl;
+    private readonly string _modelName = "azure-terraform-engineer";
 
     public OllamaFunctions(ILogger<OllamaFunctions> logger, IConfiguration configuration)
     {
@@ -40,23 +41,22 @@ public class OllamaFunctions
 
         if (data is null
             || !data.TryGetValue("prompt", out var userPrompt)
-            || !data.TryGetValue("model", out var model)
-            || !data.TryGetValue("agent", out var agent))
+            )
         {
-            logger.LogError("Missing prompt, model, or agent.");
+            logger.LogError("Missing prompt.");
             var badResponse = req.CreateResponse(System.Net.HttpStatusCode.BadRequest);
-            badResponse.WriteString("Missing prompt, model, or agent.");
+            badResponse.WriteString("Missing prompt.");
             return badResponse;
         }
 
-        var systemPrompt = AgentPrompts.GetPrompt(agent);
-        var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
+        //var systemPrompt = AgentPrompts.GetPrompt(agent);
+        //var fullPrompt = $"{systemPrompt}\n\n{userPrompt}";
 
         var requestContent = new StringContent(
             System.Text.Json.JsonSerializer.Serialize(new
             {
-                model = model,
-                prompt = fullPrompt,
+                model = _modelName,
+                prompt = userPrompt,
                 stream = true // activamos el stream
             }),
             System.Text.Encoding.UTF8,
@@ -72,8 +72,8 @@ public class OllamaFunctions
             Content = new StringContent(
                 System.Text.Json.JsonSerializer.Serialize(new
                 {
-                    model = model,
-                    prompt = fullPrompt,
+                    model = _modelName,
+                    prompt = userPrompt,
                     stream = true // activamos el stream
                 }),
                 System.Text.Encoding.UTF8,
