@@ -3,11 +3,14 @@ import {ChatDetail, ChatHeader} from "../types/Chat";
 
 export async function streamChatResponse(
     prompt: string,
-    model: string, // model parameter might still be useful for the endpoint, but not for parsing logic
+    engineName: string, // Changed from model to engineName
+    modelName: string,  // Added modelName
+    language: string = "en", // Default language is English
     onData: (chunk: string) => void
 ): Promise<void> {
-    const endpoint = `/api/chat/${model.toLowerCase()}`;
-    const stream = await apiFetchStream(endpoint, "POST", { prompt });
+    const endpoint = `/api/chat/conversation/`; // Endpoint is now generic
+    // Pass engineName and modelName in the request body
+    const stream = await apiFetchStream(endpoint, "POST", { prompt, engineName, modelName, language });
     const reader = (stream as ReadableStream<Uint8Array>).getReader();
     const decoder = new TextDecoder("utf-8");
 
@@ -24,25 +27,23 @@ export async function streamChatResponse(
             buffer = buffer.slice(newlineIndex + 1);
 
             if (line) {
-                console.log(`API [${model}]: Processing line: [${line}]`); // Log model and line
+                // Log with engine and model for clarity
+                console.log(`API [${engineName}/${modelName}]: Processing line: [${line}]`);
                 try {
                     const parsed = JSON.parse(line);
-                    if (parsed.done === true) { // Check for done explicitly being true
-                        console.log(`API [${model}]: Parsed 'done:true' chunk. Line: [${line}]`);
-                        // If it's a final chunk with done:true, we might not expect a 'response' or want to send it.
-                        // If there's a response field even when done:true, and it should be processed, adjust this logic.
-                        // For now, if done is true, we assume this chunk's primary purpose is the done signal.
+                    if (parsed.done === true) {
+                        console.log(`API [${engineName}/${modelName}]: Parsed 'done:true' chunk. Line: [${line}]`);
                     } else {
                         const content = parsed.response;
                         if (typeof content === 'string') {
-                            console.log(`API [${model}]: Extracted content: ['${content}'], calling onData.`);
+                            console.log(`API [${engineName}/${modelName}]: Extracted content: ['${content}'], calling onData.`);
                             onData(content);
                         } else {
-                            console.warn(`API [${model}]: Parsed JSON, but 'response' field is not a string or is undefined. Content:`, content, `Line: [${line}]`);
+                            console.warn(`API [${engineName}/${modelName}]: Parsed JSON, but 'response' field is not a string or is undefined. Content:`, content, `Line: [${line}]`);
                         }
                     }
                 } catch (err) {
-                    console.warn(`API [${model}]: Skipping invalid JSON line: [${line}]`, "Error:", err);
+                    console.warn(`API [${engineName}/${modelName}]: Skipping invalid JSON line: [${line}]`, "Error:", err);
                 }
             }
         }
@@ -50,22 +51,22 @@ export async function streamChatResponse(
     // Handle any remaining data in the buffer
     if (buffer.trim()) {
         const line = buffer.trim();
-        console.log(`API [${model}]: Processing remaining buffer: [${line}]`);
+        console.log(`API [${engineName}/${modelName}]: Processing remaining buffer: [${line}]`);
         try {
             const parsed = JSON.parse(line);
             if (parsed.done === true) {
-                console.log(`API [${model}]: Parsed 'done:true' chunk from remaining buffer. Line: [${line}]`);
+                console.log(`API [${engineName}/${modelName}]: Parsed 'done:true' chunk from remaining buffer. Line: [${line}]`);
             } else {
                 const content = parsed.response;
                 if (typeof content === 'string') {
-                    console.log(`API [${model}]: Extracted content from remaining buffer: ['${content}'], calling onData.`);
+                    console.log(`API [${engineName}/${modelName}]: Extracted content from remaining buffer: ['${content}'], calling onData.`);
                     onData(content);
                 } else {
-                    console.warn(`API [${model}]: Parsed JSON from remaining buffer, but 'response' field is not a string or is undefined. Content:`, content, `Line: [${line}]`);
+                    console.warn(`API [${engineName}/${modelName}]: Parsed JSON from remaining buffer, but 'response' field is not a string or is undefined. Content:`, content, `Line: [${line}]`);
                 }
             }
         } catch (err) {
-            console.warn(`API [${model}]: Skipping invalid JSON in remaining buffer: [${line}]`, "Error:", err);
+            console.warn(`API [${engineName}/${modelName}]: Skipping invalid JSON in remaining buffer: [${line}]`, "Error:", err);
         }
     }
 }
@@ -85,9 +86,12 @@ export async function getChatMessages(chatId: number): Promise<ChatDetail[]> {
 export async function addChatMessage(
     chatId: number,
     sender: string,
-    message: string
+    message: string,
+    engineName?: string | null, // Allow engineName to be null
+    modelName?: string | null, // Allow modelName to be null
+    
 ): Promise<ChatDetail> {
-    return await apiFetchJson(`/api/chats/${chatId}/messages`, "POST", { sender, message });
+    return await apiFetchJson(`/api/chats/${chatId}/messages`, "POST", { sender, message, engineName, modelName });
 }
 
 export async function deleteChat(chatId: number): Promise<void> {

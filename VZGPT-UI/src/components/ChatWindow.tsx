@@ -173,7 +173,11 @@ export default function ChatWindow({ userName }: ChatWindowProps) {
 
         try {
             // The 'chunk' parameter from streamChatResponse is now always the pre-extracted string content
-            await streamChatResponse(message, model, (chunkContent) => {
+            // Read engine and model from localStorage for API call
+            const savedEngine = localStorage.getItem('selectedEngine') || '';
+            const savedModel = localStorage.getItem('selectedModel') || '';
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'en';
+            await streamChatResponse(message, savedEngine, savedModel, savedLanguage, (chunkContent) => {
                 // console.log(`ChatWindow [${model}]: Received content chunk: ['${chunkContent}']`);
                 
                 // No model-specific parsing needed here anymore, as ChatApi.ts handles it.

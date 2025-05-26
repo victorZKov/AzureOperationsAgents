@@ -34,6 +34,7 @@ export default function ChatPrompt({ onSend }: ChatPromptProps) {
             width="100%" 
             px={2} 
             pb={2}
+            mt={2}
         >
             <Box 
                 display="flex" 
@@ -44,7 +45,7 @@ export default function ChatPrompt({ onSend }: ChatPromptProps) {
                     fullWidth
                     variant="outlined"
                     size="medium"
-                    placeholder={t("prompt")}
+                    placeholder={t("promptPlaceholder")}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleSend()}

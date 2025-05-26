@@ -17,11 +17,21 @@ html, body, #root {
 }
 
 .system-message {
-    background-color: #fbfbfb;
+    background-color: #fff;
     color: #000;
-    padding: 12px 16px;
+    padding: 12px 20px;
     border-radius: 12px;
     max-width: 75%;
     word-break: break-word;
     white-space: pre-wrap;
 }
+
+/* Add styles for think-content */
+.think-content {
+    font-style: italic;
+    background-color: #f0f8ff; /* Light blue background */
+    padding: 8px;
+    border-radius: 4px;
+    margin: 4px 4px;
+}
+
