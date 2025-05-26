@@ -10,4 +10,6 @@ public class ChatDetail
     public string Sender { get; set; } = string.Empty; // "user" o "assistant"
     public string Message { get; set; } = string.Empty;
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
+    public string? EngineName { get; set; }
+    public string? ModelName { get; set; }
 }

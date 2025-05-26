@@ -78,7 +78,7 @@ public class ChatFunctions
         if (body == null || string.IsNullOrWhiteSpace(body.Sender) || string.IsNullOrWhiteSpace(body.Message))
             return req.CreateResponse(HttpStatusCode.BadRequest);
 
-        var detail = await _chatService.AddMessageAsync(id, body.Sender, body.Message);
+        var detail = await _chatService.AddMessageAsync(id, body.Sender, body.Message, body.EngineName, body.ModelName);
         var response = req.CreateResponse(HttpStatusCode.Created);
         await response.WriteAsJsonAsync(detail);
         return response;
@@ -149,5 +149,11 @@ public class ChatFunctions
 
         [JsonPropertyName("message")]
         public string Message { get; set; } = string.Empty;
+
+        [JsonPropertyName("engineName")]
+        public string? EngineName { get; set; }
+
+        [JsonPropertyName("modelName")]
+        public string? ModelName { get; set; }
     }
 }

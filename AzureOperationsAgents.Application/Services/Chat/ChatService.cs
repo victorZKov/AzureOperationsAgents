@@ -32,14 +32,16 @@ namespace AzureOperationsAgents.Application.Services.Chat
             return await _repository.GetChatsByUserAsync(userId);
         }
 
-        public async Task<ChatDetail> AddMessageAsync(int chatHeaderId, string sender, string text)
+        public async Task<ChatDetail> AddMessageAsync(int chatHeaderId, string sender, string text, string? engineName, string? modelName)
         {
             var detail = new ChatDetail
             {
                 ChatHeaderId = chatHeaderId,
                 Sender = sender,
                 Message = text,
-                SentAt = DateTime.UtcNow
+                SentAt = DateTime.UtcNow,
+                EngineName = engineName, // Added engine name
+                ModelName = modelName    // Added model name
             };
 
             await _repository.AddMessageAsync(detail);
@@ -74,3 +76,4 @@ namespace AzureOperationsAgents.Application.Services.Chat
         }
     }
 }
+

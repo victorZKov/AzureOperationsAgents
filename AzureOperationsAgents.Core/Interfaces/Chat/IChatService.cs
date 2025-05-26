@@ -6,10 +6,11 @@ namespace AzureOperationsAgents.Core.Interfaces.Chat
     {
         Task<ChatHeader> CreateChatAsync(string userId, string? title = null);
         Task<List<ChatHeader>> GetChatsByUserAsync(string userId);
-        Task<ChatDetail> AddMessageAsync(int chatHeaderId, string sender, string text);
+        Task<ChatDetail> AddMessageAsync(int chatHeaderId, string sender, string text, string? engineName, string? modelName);
         Task<List<ChatDetail>> GetMessagesByChatAsync(int chatHeaderId, string userId);
         Task<bool> DeleteChatAsync(int chatHeaderId, string userId);
         
         Task<bool> AssignChatToProjectAsync(int chatHeaderId, int? projectId, string userId);
     }
 }
+

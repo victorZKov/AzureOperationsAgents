@@ -1,3 +1,4 @@
+using AzureOperationsAgents.Core.Entities;
 using AzureOperationsAgents.Core.Models.Chat;
 using AzureOperationsAgents.Core.Models.Configuration;
 using AzureOperationsAgents.Core.Models.Learning;
@@ -18,6 +19,7 @@ namespace AzureOperationsAgents.Core.Context
         public DbSet<ChatDetail> ChatDetails { get; set; }
         public DbSet<KnowledgeSnippet> KnowledgeSnippets { get; set; }
         public DbSet<UserConfiguration> UserConfigurations { get; set; }
+        public DbSet<ModelEntity> Models { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -127,6 +129,26 @@ namespace AzureOperationsAgents.Core.Context
                 entity.HasIndex(e => new { e.UserId, e.IsDefault })
                     .IsUnique()
                     .HasFilter("[IsDefault] = 1");
+            });
+            
+            // ModelEntity entity
+            modelBuilder.Entity<ModelEntity>(entity =>
+            {
+                entity.ToTable("Models");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.EngineName)
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                entity.Property(e => e.ModelName)
+                    .IsRequired()
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.DisplayName)
+                    .IsRequired()
+                    .HasMaxLength(200);
             });
         }
     }
