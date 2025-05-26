@@ -6,6 +6,7 @@ using AzureOperationsAgents.Core.Interfaces.Chat;
 using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using AzureOperationsAgents.Core.Models.Learning;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace AzureOperationsAgents.Application.Services.Chat;
@@ -43,11 +44,11 @@ public class OllamaService : IStreamChatService
         _modelName = configuration["OllamaModel"] ?? "mistral:latest";
     }
 
-    public async Task<Stream> StreamChatCompletionAsync(string prompt, string userId, CancellationToken cancellationToken)
+    public async Task<Stream> StreamChatCompletionAsync(string prompt, string ollamaModel, string language, string userId, CancellationToken cancellationToken)
     {
         // Get user-specific configuration
         string ollamaServer = await _configurationService.GetOllamaServerForUserAsync(userId);
-        string ollamaModel = await _configurationService.GetOllamaModelForUserAsync(userId);
+        //string ollamaModel = await _configurationService.GetOllamaModelForUserAsync(userId);
         
         // Construct the URL with user's preferred Ollama server
         string apiUrl = $"{ollamaServer}/api/generate";
@@ -107,10 +108,33 @@ public class OllamaService : IStreamChatService
             fullPromptBuilder.AppendLine("\nRelevant web search results:");
             fullPromptBuilder.AppendLine(string.Join("\n", webSnippets));
         }
-        
+
+        // Add previous messages to the prompt
+        var previousMessages = await _dbContext.ChatDetails
+            .Where(cd =>  cd.Sender == "user")
+            .OrderBy(cd => cd.SentAt)
+            .Take(10) // Limit to last 5 messages for context
+            .Select(cd => cd.Message)
+            .ToListAsync(cancellationToken);
+
+        if (previousMessages.Any())
+        {
+            fullPromptBuilder.AppendLine("\nPrevious messages:");
+            foreach (var message in previousMessages)
+            {
+                fullPromptBuilder.AppendLine(message);
+            }
+        }
+
         // Add user prompt
         fullPromptBuilder.AppendLine("\nUser query:");
         fullPromptBuilder.AppendLine(prompt);
+        
+        // Add language instruction
+        if (!string.IsNullOrWhiteSpace(language))
+        {
+            fullPromptBuilder.AppendLine($"\nPlease respond in {language}.");
+        }
         
         var fullPrompt = fullPromptBuilder.ToString();
 

@@ -32,11 +32,11 @@ public class OpenAiService : IStreamChatService
         _configurationService = configurationService;
     }
 
-    public async Task<Stream> StreamChatCompletionAsync(string prompt, string userId, CancellationToken cancellationToken)
+    public async Task<Stream> StreamChatCompletionAsync(string prompt, string model, string language, string userId, CancellationToken cancellationToken)
     {
         // Get user-specific configuration
         string apiKey = await _configurationService.GetOpenAIKeyForUserAsync(userId);
-        string model = await _configurationService.GetOpenAIModelForUserAsync(userId);
+        //string model = await _configurationService.GetOpenAIModelForUserAsync(userId);
         string endpoint = await _configurationService.GetOpenAIEndpointForUserAsync(userId);
         string url = $"{endpoint}/chat/completions";
         
@@ -82,6 +82,11 @@ public class OpenAiService : IStreamChatService
         if (webSnippets.Any())
         {
             messages.Add(new { role = "system", content = $"Relevant web search results:\n{string.Join("\n", webSnippets)}" });
+        }
+        
+        if (!string.IsNullOrWhiteSpace(language))
+        {
+            messages.Add(new { role = "system", content = $"The user prefers responses in {language}." });
         }
 
         messages.Add(new { role = "user", content = prompt });

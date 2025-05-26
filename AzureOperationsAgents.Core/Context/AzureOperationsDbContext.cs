@@ -60,6 +60,8 @@ namespace AzureOperationsAgents.Core.Context
                 entity.Property(d => d.Sender).IsRequired().HasMaxLength(20);
                 entity.Property(d => d.Message).IsRequired();
                 entity.Property(d => d.SentAt).IsRequired();
+                entity.Property(d => d.EngineName).HasMaxLength(50); // Added EngineName configuration
+                entity.Property(d => d.ModelName).HasMaxLength(100); // Added ModelName configuration
             });
             
             // KnowledgeSnippet entity
@@ -146,9 +148,12 @@ namespace AzureOperationsAgents.Core.Context
                     .IsRequired()
                     .HasMaxLength(100);
 
-                entity.Property(e => e.DisplayName)
-                    .IsRequired()
-                    .HasMaxLength(200);
+                // DisplayName is a computed property, so it doesn't need to be configured here
+                // entity.Property(e => e.DisplayName)
+                //    .IsRequired()
+                //    .HasMaxLength(200);
+
+                entity.HasIndex(m => new { m.EngineName, m.ModelName }).IsUnique(); // Ensure unique model per engine
             });
         }
     }

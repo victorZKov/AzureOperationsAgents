@@ -1,12 +1,14 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using AzureOperationsAgents.Application.Services.Chat;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using AzureOperationsAgents.Core.Helpers;
 using AzureOperationsAgents.Core.Interfaces.Chat;
 using AzureOperationsAgents.Core.Models.Chat;
+using Microsoft.Extensions.Configuration;
 
 namespace AzureOperationsAgents.UI.Backend.Functions;
 
@@ -14,11 +16,21 @@ public class ChatFunctions
 {
     private readonly ILogger<ChatFunctions> _logger;
     private readonly IChatService _chatService;
+    private readonly OpenAiService _openaiService;
+    private readonly OllamaService _ollamaService;
+    private readonly string _defaultOpenAiModel;
+    
 
-    public ChatFunctions(ILogger<ChatFunctions> logger, IChatService chatService)
+    public ChatFunctions(ILogger<ChatFunctions> logger, IChatService chatService,
+        OpenAiService openaiService,
+        OllamaService ollamaService,
+        IConfiguration configuration)
     {
         _logger = logger;
         _chatService = chatService;
+        _openaiService = openaiService;
+        _ollamaService = ollamaService;
+        _defaultOpenAiModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
     }
 
     [Function("GetChats")]
@@ -130,30 +142,124 @@ public class ChatFunctions
         return response;
     }
 
-    private class AssignChatRequest
+    [Function("ChatConversation")]
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "chat/conversation")]
+        HttpRequestData req,
+        FunctionContext executionContext)
     {
-        [JsonPropertyName("projectId")]
-        public int ProjectId { get; set; }
-    }
+        var logger = executionContext.GetLogger("ChatConversation");
+        logger.LogInformation("ChatConversation function triggered.");
 
-    private class CreateChatRequest
-    {
-        [JsonPropertyName("title")]
-        public string? Title { get; set; }
-    }
+        var body = await new StreamReader(req.Body).ReadToEndAsync();
+        var conversationRequest = JsonSerializer.Deserialize<ConversationRequest>(body);
 
-    private class AddMessageRequest
-    {
-        [JsonPropertyName("sender")]
-        public string Sender { get; set; } = string.Empty;
+        if (conversationRequest == null || string.IsNullOrEmpty(conversationRequest.Prompt))
+        {
+            logger.LogError("Missing or invalid prompt.");
+            var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badResponse.WriteStringAsync("Missing or invalid prompt.");
+            return badResponse;
+        }
 
-        [JsonPropertyName("message")]
-        public string Message { get; set; } = string.Empty;
+        var userId = JwtUtils.GetSubFromAuthorizationHeader(req);
+        if (string.IsNullOrEmpty(userId))
+        {
+            logger.LogWarning("User ID not found in token.");
+            var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
+            await unauthorizedResponse.WriteStringAsync("User ID not found in token.");
+            return unauthorizedResponse;
+        }
 
-        [JsonPropertyName("engineName")]
-        public string? EngineName { get; set; }
+        HttpResponseData response = req.CreateResponse(HttpStatusCode.OK);
+        response.Headers.Add("Content-Type", "text/event-stream");
 
-        [JsonPropertyName("modelName")]
-        public string? ModelName { get; set; }
+        Stream? stream = null;
+
+        if (conversationRequest.EngineName.Equals("openai", StringComparison.OrdinalIgnoreCase))
+        {
+            string model = string.IsNullOrEmpty(conversationRequest.ModelName)
+                ? _defaultOpenAiModel
+                : conversationRequest.ModelName;
+
+            stream = await _openaiService.StreamChatCompletionAsync(conversationRequest.Prompt, model, conversationRequest.Language, userId, CancellationToken.None);
+
+            await using var writer = new StreamWriter(response.Body);
+            using var readerStream = new StreamReader(stream);
+
+            while (!readerStream.EndOfStream)
+            {
+                var line = await readerStream.ReadLineAsync();
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+
+                if (line.StartsWith("data: "))
+                {
+                    var jsonPart = line.Substring("data: ".Length).Trim();
+
+                    if (jsonPart == "[DONE]")
+                        continue;
+
+                    try
+                    {
+                        using var jsonDoc = JsonDocument.Parse(jsonPart);
+                        var choice = jsonDoc.RootElement.GetProperty("choices")[0];
+
+                        string responseContent = "";
+                        if (choice.TryGetProperty("delta", out var delta) && delta.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.String)
+                        {
+                            responseContent = contentProp.GetString() ?? "";
+                        }
+
+                        bool isDone = choice.TryGetProperty("finish_reason", out var finishReasonProp) && finishReasonProp.ValueKind != JsonValueKind.Null;
+
+                        var streamEvent = new
+                        {
+                            model = model,
+                            created_at = DateTime.UtcNow.ToString("o"),
+                            response = responseContent,
+                            done = isDone
+                        };
+
+                        string newJsonPayload = JsonSerializer.Serialize(streamEvent);
+                        await writer.WriteAsync(newJsonPayload + "\n");
+                        await writer.FlushAsync();
+                    }
+                    catch (JsonException ex)
+                    {
+                        logger.LogWarning($"Skipping invalid JSON chunk: {jsonPart}. Error: {ex.Message}");
+                    }
+                }
+            }
+        }
+        else if (conversationRequest.EngineName.Equals("ollama", StringComparison.OrdinalIgnoreCase))
+        {
+            stream = await _ollamaService.StreamChatCompletionAsync(conversationRequest.Prompt, conversationRequest.ModelName, conversationRequest.Language, userId, CancellationToken.None);
+
+            await using var writer = new StreamWriter(response.Body);
+            using var readerStream = new StreamReader(stream);
+
+            while (!readerStream.EndOfStream)
+            {
+                var line = await readerStream.ReadLineAsync();
+                if (!string.IsNullOrWhiteSpace(line))
+                {
+                    await writer.WriteLineAsync(line);
+                    await writer.FlushAsync();
+                }
+            }
+        }
+        else
+        {
+            logger.LogError($"Unsupported engine: {conversationRequest.EngineName}");
+            var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+            await badResponse.WriteStringAsync($"Unsupported engine: {conversationRequest.EngineName}");
+            return badResponse;
+        }
+
+        return response;
     }
 }
+
+
+

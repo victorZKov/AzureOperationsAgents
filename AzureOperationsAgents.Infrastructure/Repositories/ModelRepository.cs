@@ -44,13 +44,13 @@ namespace AzureOperationsAgents.Infrastructure.Repositories
         {
             return new List<ModelEntity>
             {
-                new ModelEntity { Id = 1, EngineName = "OpenAI", ModelName = "gpt-4" },
-                new ModelEntity { Id = 2, EngineName = "OpenAI", ModelName = "gpt-4o" },
-                new ModelEntity { Id = 3, EngineName = "OpenAI", ModelName = "gpt-3.5-turbo" },
-                new ModelEntity { Id = 4, EngineName = "Ollama", ModelName = "mistral:latest" },
-                new ModelEntity { Id = 5, EngineName = "Ollama", ModelName = "deepseek-r1:latest" },
-                new ModelEntity { Id = 6, EngineName = "Ollama", ModelName = "qwen3:4b" },
-                new ModelEntity { Id = 7, EngineName = "Ollama", ModelName = "deepseek-r1:8b" }
+                new ModelEntity { EngineName = "OpenAI", ModelName = "gpt-4" },
+                new ModelEntity { EngineName = "OpenAI", ModelName = "gpt-4o" },
+                new ModelEntity { EngineName = "OpenAI", ModelName = "gpt-3.5-turbo" },
+                new ModelEntity { EngineName = "Ollama", ModelName = "mistral:latest" },
+                new ModelEntity { EngineName = "Ollama", ModelName = "deepseek-r1:latest" },
+                new ModelEntity { EngineName = "Ollama", ModelName = "qwen3:4b" },
+                new ModelEntity {  EngineName = "Ollama", ModelName = "deepseek-r1:8b" }
             };
         }
     }
