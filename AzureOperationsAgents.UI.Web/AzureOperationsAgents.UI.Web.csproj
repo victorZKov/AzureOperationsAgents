@@ -18,6 +18,22 @@
     <ItemGroup>
       <_ContentIncludedByDefault Remove="src\i18n\en.json" />
       <_ContentIncludedByDefault Remove="src\i18n\es.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\ca.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\en.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\es.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\eus.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\fr.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\gi.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\pt.json" />
+      <_ContentIncludedByDefault Remove="src\locales\langs\sk.json" />
+      <_ContentIncludedByDefault Remove="src\_mock\map\map-style-basic-v8.json" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\.dockerignore">
+        <DependentUpon>Dockerfile</DependentUpon>
+        <Link>old\.dockerignore</Link>
+      </None>
     </ItemGroup>
 
 </Project>

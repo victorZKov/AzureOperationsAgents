@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using AzureOperationsAgents.Core.Interfaces.Learning;
+using AzureOperationsAgents.Core.Models.Learning;
 using Container = Microsoft.Azure.Cosmos.Container;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories

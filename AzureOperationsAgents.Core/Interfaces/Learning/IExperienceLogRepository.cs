@@ -1,4 +1,5 @@
 using AzureOperationsAgents.Core.Models;
+using AzureOperationsAgents.Core.Models.Learning;
 
 namespace AzureOperationsAgents.Core.Interfaces.Learning;
 

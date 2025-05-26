@@ -4,13 +4,13 @@ namespace AzureOperationsAgents.Infrastructure.Repositories
 {
     public class AgentRepository
     {
-        private readonly Dictionary<string, AgentInfo> _agents = new();
+        private readonly Dictionary<string, AgentInfo?> _agents = new();
         private readonly Dictionary<string, AgentConfig> _configs = new();
         private readonly Dictionary<string, List<AgentLogEntry>> _logs = new();
 
-        public Dictionary<string, AgentInfo> GetAgents() => _agents;
+        public Dictionary<string, AgentInfo?> GetAgents() => _agents;
 
-        public AgentInfo GetAgentById(string id) => _agents.ContainsKey(id) ? _agents[id] : null;
+        public AgentInfo? GetAgentById(string id) => _agents.ContainsKey(id) ? _agents[id] : null;
 
         public void UpdateAgentConfig(string id, AgentConfig config)
         {

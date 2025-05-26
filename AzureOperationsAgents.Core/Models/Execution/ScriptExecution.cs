@@ -26,5 +26,5 @@ public class ScriptExecution
     public TimeSpan Duration { get; set; }
 
     [JsonPropertyName("parameters")]
-    public Dictionary<string, string> Parameters { get; set; } = new();
+    public Dictionary<string, string>? Parameters { get; set; } = new();
 } 

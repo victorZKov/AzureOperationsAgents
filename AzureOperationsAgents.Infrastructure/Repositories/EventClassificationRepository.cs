@@ -75,7 +75,7 @@ public class SqlServerEventClassificationRepository : IEventClassificationReposi
         });
     }
 
-    public async Task<EventClassification?> GetByIdAsync(string id)
+    public async Task<EventClassification> GetByIdAsync(string id)
     {
         using var connection = new SqlConnection(_connectionString);
         var row = await connection.QuerySingleOrDefaultAsync<dynamic>(

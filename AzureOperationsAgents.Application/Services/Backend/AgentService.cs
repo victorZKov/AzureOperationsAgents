@@ -12,9 +12,9 @@ namespace AzureOperationsAgents.Application.Services.Backend
             _repository = repository;
         }
 
-        public Dictionary<string, AgentInfo> GetAllAgents() => _repository.GetAgents();
+        public Dictionary<string, AgentInfo?> GetAllAgents() => _repository.GetAgents();
 
-        public AgentInfo GetAgentById(string id) => _repository.GetAgentById(id);
+        public AgentInfo? GetAgentById(string id) => _repository.GetAgentById(id);
 
         public void UpdateAgentConfig(string id, AgentConfig config) => _repository.UpdateAgentConfig(id, config);
 

@@ -136,11 +136,11 @@ public class ScriptExecutionService : IScriptExecutionService
         {
             Id = entity.RowKey,
             ScriptId = entity.GetString("ScriptId"),
-            ExecutionTime = entity.GetDateTime("ExecutionTime").Value,
+            ExecutionTime = entity.GetDateTime("ExecutionTime")!.Value,
             Status = entity.GetString("Status"),
             Output = entity.GetString("Output"),
             Error = entity.GetString("Error"),
-            Duration = TimeSpan.FromMilliseconds(entity.GetDouble("Duration").Value),
+            Duration = TimeSpan.FromMilliseconds(entity.GetDouble("Duration")!.Value),
             Parameters = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(entity.GetString("Parameters"))
         };
     }
