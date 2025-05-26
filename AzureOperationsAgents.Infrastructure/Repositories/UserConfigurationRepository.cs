@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using AzureOperationsAgents.Core.Context;
+using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Models.Configuration;
-using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories

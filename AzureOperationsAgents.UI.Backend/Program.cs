@@ -11,8 +11,6 @@ using AzureOperationsAgents.Core.Context;
 using AzureOperationsAgents.Core.Interfaces.Projects;
 using AzureOperationsAgents.Application.Services.Projects;
 using AzureOperationsAgents.Infrastructure.Repositories;
-using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
-
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Application.Services.Scripting;
 using AzureOperationsAgents.Core.Interfaces.Chat;
@@ -60,11 +58,15 @@ var host = Host.CreateDefaultBuilder()
         
         // Repositorio y servicio de configuración
         services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
-        services.AddScoped<IConfigurationService, ConfigurationService>();
+        services.AddScoped<IUserConfigurationService, UserConfigurationService>();
         
         // Repositorio y servicio de modelos LLM
         services.AddScoped<IModelRepository, ModelRepository>();
         services.AddScoped<IModelService, ModelService>();
+        
+        // Repositorio y servicio de configuración de instrucciones
+        services.AddScoped<IInstructionConfigurationRepository, InstructionConfigurationRepository>();
+        services.AddScoped<IInstructionConfigurationService, InstructionConfigurationService>();
         
         // // Servicio de generación de scripts (LLM)
         // services.AddHttpClient<IScriptGenerationService, ScriptGenerationService>(client =>

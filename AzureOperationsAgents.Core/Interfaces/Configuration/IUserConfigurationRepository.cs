@@ -1,8 +1,6 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using AzureOperationsAgents.Core.Models.Configuration;
 
-namespace AzureOperationsAgents.Infrastructure.Repositories.Interfaces
+namespace AzureOperationsAgents.Core.Interfaces.Configuration
 {
     public interface IUserConfigurationRepository
     {

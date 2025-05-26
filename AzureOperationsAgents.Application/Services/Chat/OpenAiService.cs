@@ -16,11 +16,13 @@ public class OpenAiService : IStreamChatService
     private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IWebSearchService _webSearchService;
-    private readonly IConfigurationService _configurationService;
+    private readonly IUserConfigurationService _configurationService;
+    private readonly IInstructionConfigurationService _instructionService;
+    
     public string ConfiguredModelName => _defaultModel;
 
     public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, 
-                       IWebSearchService webSearchService, IConfigurationService configurationService)
+                       IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService)
     {
         _httpClient = new HttpClient();
         _defaultModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
@@ -30,6 +32,7 @@ public class OpenAiService : IStreamChatService
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
         _configurationService = configurationService;
+        _instructionService = instructionService;
     }
 
     public async Task<Stream> StreamChatCompletionAsync(string prompt, string model, string language, string userId, CancellationToken cancellationToken)
@@ -67,8 +70,14 @@ public class OpenAiService : IStreamChatService
         {
             Console.WriteLine($"Error during embedding or web search: {ex.Message}");
         }
-
-        var systemInstructions = "You are an assistant combining company knowledge and live web data.";
+        var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
+        string systemInstructions = string.Empty;
+        
+        if (instructions != null)
+        {
+            systemInstructions = instructions.Value;
+        }
+        systemInstructions = systemInstructions + ". You are an assistant combining company knowledge and live web data.";
         var messages = new List<object>
         {
             new { role = "system", content = systemInstructions }

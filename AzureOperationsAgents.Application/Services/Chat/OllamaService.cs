@@ -21,7 +21,8 @@ public class OllamaService : IStreamChatService
     private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IWebSearchService _webSearchService;
-    private readonly IConfigurationService _configurationService;
+    private readonly IUserConfigurationService _configurationService;
+    private readonly IInstructionConfigurationService _instructionService;
 
     public OllamaService(
         IConfiguration configuration,
@@ -29,13 +30,14 @@ public class OllamaService : IStreamChatService
         IKnowledgeService knowledgeService,
         IEmbeddingService embeddingService,
         IWebSearchService webSearchService,
-        IConfigurationService configurationService)
+        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService)
     {
         _dbContext = dbContext;
         _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
         _configurationService = configurationService;
+        _instructionService = instructionService;
 
         _httpClient = new HttpClient();
         _baseUrl = string.IsNullOrEmpty(configuration["OllamaServer"])
@@ -85,6 +87,11 @@ public class OllamaService : IStreamChatService
         // Build the full prompt with all context
         var fullPromptBuilder = new StringBuilder();
         
+        var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
+        if (instructions != null)
+        {
+            fullPromptBuilder.AppendLine(instructions.Value);
+        }
         // Add system instructions
         fullPromptBuilder.AppendLine("You are an assistant combining company knowledge and live web data.");
         

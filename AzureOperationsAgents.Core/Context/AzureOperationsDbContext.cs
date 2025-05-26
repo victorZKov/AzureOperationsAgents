@@ -20,6 +20,7 @@ namespace AzureOperationsAgents.Core.Context
         public DbSet<KnowledgeSnippet> KnowledgeSnippets { get; set; }
         public DbSet<UserConfiguration> UserConfigurations { get; set; }
         public DbSet<ModelEntity> Models { get; set; }
+        public DbSet<InstructionConfiguration> InstructionConfigurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -154,6 +155,18 @@ namespace AzureOperationsAgents.Core.Context
                 //    .HasMaxLength(200);
 
                 entity.HasIndex(m => new { m.EngineName, m.ModelName }).IsUnique(); // Ensure unique model per engine
+            });
+            
+            // InstructionConfiguration entity
+            modelBuilder.Entity<InstructionConfiguration>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Key).IsRequired().HasMaxLength(100);
+                entity.Property(c => c.Value).IsRequired();
+                entity.Property(c => c.Description).HasMaxLength(255);
+                entity.Property(c => c.CreatedAt).IsRequired();
+                entity.Property(c => c.UpdatedAt).IsRequired();
+                entity.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
             });
         }
     }

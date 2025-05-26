@@ -3,17 +3,16 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Models.Configuration;
-using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
 using Microsoft.Extensions.Configuration;
 
 namespace AzureOperationsAgents.Application.Services.Configuration
 {
-    public class ConfigurationService : IConfigurationService
+    public class UserConfigurationService : IUserConfigurationService
     {
         private readonly IUserConfigurationRepository _userConfigRepository;
         private readonly IConfiguration _appConfiguration;
 
-        public ConfigurationService(IUserConfigurationRepository userConfigRepository, IConfiguration appConfiguration)
+        public UserConfigurationService(IUserConfigurationRepository userConfigRepository, IConfiguration appConfiguration)
         {
             _userConfigRepository = userConfigRepository;
             _appConfiguration = appConfiguration;

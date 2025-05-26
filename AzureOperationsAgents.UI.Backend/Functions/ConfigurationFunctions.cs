@@ -12,9 +12,9 @@ namespace AzureOperationsAgents.UI.Backend.Functions
 {
     public class ConfigurationFunctions
     {
-        private readonly IConfigurationService _configurationService;
+        private readonly IUserConfigurationService _configurationService;
 
-        public ConfigurationFunctions(IConfigurationService configurationService)
+        public ConfigurationFunctions(IUserConfigurationService configurationService)
         {
             _configurationService = configurationService;
         }

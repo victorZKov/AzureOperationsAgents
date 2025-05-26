@@ -2,7 +2,7 @@ using AzureOperationsAgents.Core.Models.Configuration;
 
 namespace AzureOperationsAgents.Core.Interfaces.Configuration
 {
-    public interface IConfigurationService
+    public interface IUserConfigurationService
     {
         // CRUD Operations
         Task<UserConfiguration> GetConfigurationByIdAsync(int id);
