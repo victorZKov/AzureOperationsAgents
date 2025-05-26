@@ -1,4 +1,5 @@
-import {Card, CardContent, Typography, Grid, Box, Divider} from "@mui/material";
+import {Card, CardContent, Typography, Box, Divider} from "@mui/material";
+import Grid from "@mui/material/Grid";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@mui/material";
@@ -58,7 +59,7 @@ export const Home = () => {
             <Divider sx={{ my: 4 }} />
             <Grid container spacing={2} justifyContent="center" mt={8}>
                 {examples.map((example, index) => (
-                    <Grid item xs={12} sm={6} md={4} key={index}>
+                    <Grid item xs={12} sm={6} md={4} key={index} >
                         <Card>
                             <CardContent>
                                 <Typography variant="h6" gutterBottom>
