@@ -1,4 +1,5 @@
 using AzureOperationsAgents.Core.Models.Chat;
+using AzureOperationsAgents.Core.Models.Configuration;
 using AzureOperationsAgents.Core.Models.Learning;
 using AzureOperationsAgents.Core.Models.Projects;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ namespace AzureOperationsAgents.Core.Context
         public DbSet<ChatHeader> ChatHeaders { get; set; }
         public DbSet<ChatDetail> ChatDetails { get; set; }
         public DbSet<KnowledgeSnippet> KnowledgeSnippets { get; set; }
+        public DbSet<UserConfiguration> UserConfigurations { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -81,6 +83,50 @@ namespace AzureOperationsAgents.Core.Context
 
                 entity.Property(e => e.CreatedAt)
                     .HasDefaultValueSql("GETUTCDATE()");
+            });
+            
+            // UserConfiguration entity
+            modelBuilder.Entity<UserConfiguration>(entity =>
+            {
+                entity.ToTable("UserConfigurations");
+
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.UserId)
+                    .IsRequired()
+                    .HasMaxLength(100);
+                    
+                entity.Property(e => e.OpenAIKey)
+                    .HasMaxLength(100);
+                    
+                entity.Property(e => e.OpenAIEndpoint)
+                    .HasMaxLength(200);
+                    
+                entity.Property(e => e.OpenAIModel)
+                    .HasMaxLength(50);
+                    
+                entity.Property(e => e.OllamaServer)
+                    .HasMaxLength(200);
+                    
+                entity.Property(e => e.OllamaModel)
+                    .HasMaxLength(50);
+                    
+                entity.Property(e => e.SerperApiKey)
+                    .HasMaxLength(100);
+                    
+                entity.Property(e => e.SerperApiEndpoint)
+                    .HasMaxLength(200);
+                
+                entity.Property(e => e.CreatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+                    
+                entity.Property(e => e.UpdatedAt)
+                    .HasDefaultValueSql("GETUTCDATE()");
+                    
+                // Add a unique index on UserId and IsDefault to ensure a user can only have one default config
+                entity.HasIndex(e => new { e.UserId, e.IsDefault })
+                    .IsUnique()
+                    .HasFilter("[IsDefault] = 1");
             });
         }
     }

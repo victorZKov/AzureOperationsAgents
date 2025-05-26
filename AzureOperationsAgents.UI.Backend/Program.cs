@@ -1,4 +1,6 @@
 using AzureOperationsAgents.Application.Services.Chat;
+using AzureOperationsAgents.Application.Services.Configuration;
+using AzureOperationsAgents.Application.Services.Configuration.Interfaces;
 using AzureOperationsAgents.Application.Services.Learning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -9,6 +11,7 @@ using AzureOperationsAgents.Core.Context;
 using AzureOperationsAgents.Core.Interfaces.Projects;
 using AzureOperationsAgents.Application.Services.Projects;
 using AzureOperationsAgents.Infrastructure.Repositories;
+using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
 
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Application.Services.Scripting;
@@ -52,6 +55,10 @@ var host = Host.CreateDefaultBuilder()
         
         // Servicio de embedding
         services.AddScoped<IEmbeddingService, EmbeddingService>();
+        
+        // Repositorio y servicio de configuración
+        services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();
+        services.AddScoped<IConfigurationService, ConfigurationService>();
         
         // // Servicio de generación de scripts (LLM)
         // services.AddHttpClient<IScriptGenerationService, ScriptGenerationService>(client =>
