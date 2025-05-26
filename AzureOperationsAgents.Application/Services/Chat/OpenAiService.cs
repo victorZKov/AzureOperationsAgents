@@ -3,36 +3,47 @@ using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Text.Json;
 using AzureOperationsAgents.Core.Interfaces.Learning;
-using AzureOperationsAgents.Application.Services.Learning;
 using AzureOperationsAgents.Core.Models.Learning;
+using AzureOperationsAgents.Core.Interfaces.Configuration;
 
 namespace AzureOperationsAgents.Application.Services.Chat;
 
 public class OpenAiService : IStreamChatService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _model;
-    public string ConfiguredModelName => _model;
+    private readonly string _defaultModel;
     private readonly string _baseUrl = "https://api.openai.com/v1";
     private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IWebSearchService _webSearchService;
+    private readonly IConfigurationService _configurationService;
+    public string ConfiguredModelName => _defaultModel;
 
-    public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, IWebSearchService webSearchService)
+    public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, 
+                       IWebSearchService webSearchService, IConfigurationService configurationService)
     {
-        var apiKey = configuration["OpenAIKey"] ?? throw new ArgumentNullException(nameof(configuration), "OpenAI:ApiKey configuration is missing");
         _httpClient = new HttpClient();
-        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
-        _model = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
-        var url = configuration["OpenAIEndpoint"] ?? _baseUrl;
-        _baseUrl = $"{url}/chat/completions";
+        _defaultModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
+        var defaultUrl = configuration["OpenAIEndpoint"] ?? _baseUrl;
+        _baseUrl = $"{defaultUrl}/chat/completions";
         _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
+        _configurationService = configurationService;
     }
 
     public async Task<Stream> StreamChatCompletionAsync(string prompt, string userId, CancellationToken cancellationToken)
     {
+        // Get user-specific configuration
+        string apiKey = await _configurationService.GetOpenAIKeyForUserAsync(userId);
+        string model = await _configurationService.GetOpenAIModelForUserAsync(userId);
+        string endpoint = await _configurationService.GetOpenAIEndpointForUserAsync(userId);
+        string url = $"{endpoint}/chat/completions";
+        
+        // Set up HttpClient with the user's API key
+        var requestClient = new HttpClient();
+        requestClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
+
         List<string> embeddingSnippets = new List<string>();
         List<string> webSnippets = new List<string>();
 
@@ -77,13 +88,13 @@ public class OpenAiService : IStreamChatService
 
         var requestBody = new
         {
-            model = _model,
+            model = model,
             messages = messages,
             stream = true,
             user = userId
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
+        var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody),
@@ -92,7 +103,7 @@ public class OpenAiService : IStreamChatService
             )
         };
 
-        var response = await _httpClient.SendAsync(
+        var response = await requestClient.SendAsync(
             request,
             HttpCompletionOption.ResponseHeadersRead,
             cancellationToken
@@ -166,3 +177,4 @@ public class OpenAiService : IStreamChatService
         return passthroughStream;
     }
 }
+

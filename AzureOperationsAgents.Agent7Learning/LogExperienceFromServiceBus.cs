@@ -1,8 +1,8 @@
-using AzureOperationsAgents.Application.Interfaces;
 using AzureOperationsAgents.Core.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using AzureOperationsAgents.Core.Interfaces.Auditing;
 using AzureOperationsAgents.Core.Models.Learning;
 
 namespace AzureOperationsAgents.Agent7Learning

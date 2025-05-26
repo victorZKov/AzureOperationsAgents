@@ -1,6 +1,5 @@
 using AzureOperationsAgents.Application.Services.Chat;
 using AzureOperationsAgents.Application.Services.Configuration;
-using AzureOperationsAgents.Application.Services.Configuration.Interfaces;
 using AzureOperationsAgents.Application.Services.Learning;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -16,6 +15,7 @@ using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
 using AzureOperationsAgents.Core.Interfaces.Scripting;
 using AzureOperationsAgents.Application.Services.Scripting;
 using AzureOperationsAgents.Core.Interfaces.Chat;
+using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Interfaces.Learning;
 
 var host = Host.CreateDefaultBuilder()

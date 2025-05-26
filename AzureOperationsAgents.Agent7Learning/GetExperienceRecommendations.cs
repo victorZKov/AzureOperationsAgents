@@ -1,8 +1,8 @@
-using AzureOperationsAgents.Application.Interfaces;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using System.Net;
+using AzureOperationsAgents.Core.Interfaces.Auditing;
 
 namespace AzureOperationsAgents.Agent7Learning
 {

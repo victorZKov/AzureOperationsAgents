@@ -1,9 +1,9 @@
 using System.Text;
 using System.Text.Json;
-using AzureOperationsAgents.Application.Services.Learning;
 using AzureOperationsAgents.Core.Context;
 using AzureOperationsAgents.Core.Helpers;
 using AzureOperationsAgents.Core.Interfaces.Chat;
+using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using AzureOperationsAgents.Core.Models.Learning;
 using Microsoft.Extensions.Configuration;
@@ -20,18 +20,21 @@ public class OllamaService : IStreamChatService
     private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IWebSearchService _webSearchService;
+    private readonly IConfigurationService _configurationService;
 
     public OllamaService(
         IConfiguration configuration,
         AzureOperationsDbContext dbContext,
         IKnowledgeService knowledgeService,
         IEmbeddingService embeddingService,
-        IWebSearchService webSearchService)
+        IWebSearchService webSearchService,
+        IConfigurationService configurationService)
     {
         _dbContext = dbContext;
         _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
+        _configurationService = configurationService;
 
         _httpClient = new HttpClient();
         _baseUrl = string.IsNullOrEmpty(configuration["OllamaServer"])
@@ -42,6 +45,13 @@ public class OllamaService : IStreamChatService
 
     public async Task<Stream> StreamChatCompletionAsync(string prompt, string userId, CancellationToken cancellationToken)
     {
+        // Get user-specific configuration
+        string ollamaServer = await _configurationService.GetOllamaServerForUserAsync(userId);
+        string ollamaModel = await _configurationService.GetOllamaModelForUserAsync(userId);
+        
+        // Construct the URL with user's preferred Ollama server
+        string apiUrl = $"{ollamaServer}/api/generate";
+
         List<string> embeddingSnippets = new List<string>();
         List<string> webSnippets = new List<string>();
         
@@ -107,12 +117,12 @@ public class OllamaService : IStreamChatService
         // Prepare request
         var payload = new
         {
-            model = _modelName,
+            model = ollamaModel,
             prompt = fullPrompt,
             stream = true
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Post, _baseUrl)
+        var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
             Content = new StringContent(JsonSerializer.Serialize(payload), Encoding.UTF8, "application/json")
         };

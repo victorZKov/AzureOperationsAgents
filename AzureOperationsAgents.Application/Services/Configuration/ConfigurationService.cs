@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using AzureOperationsAgents.Application.Services.Configuration.Interfaces;
+using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Models.Configuration;
 using AzureOperationsAgents.Infrastructure.Repositories.Interfaces;
 using Microsoft.Extensions.Configuration;

@@ -24,7 +24,7 @@ public class AgentFunctions
     }
 
     [Function("GetAgentStatus")]
-    public HttpResponseData GetAgentStatus([HttpTrigger(AuthorizationLevel.Function, "get", Route = "api/status")] HttpRequestData req)
+    public HttpResponseData GetAgentStatus([HttpTrigger(AuthorizationLevel.Function, "get", Route = "status")] HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.OK);
         response.WriteAsJsonAsync(_agentMetadata);
@@ -32,7 +32,7 @@ public class AgentFunctions
     }
 
     [Function("GetAgentConfig")]
-    public HttpResponseData GetAgentConfig([HttpTrigger(AuthorizationLevel.Function, "get", Route = "api/config")] HttpRequestData req)
+    public HttpResponseData GetAgentConfig([HttpTrigger(AuthorizationLevel.Function, "get", Route = "config")] HttpRequestData req)
     {
         var response = req.CreateResponse(HttpStatusCode.OK);
         response.WriteAsJsonAsync(_agentConfig);
@@ -40,7 +40,7 @@ public class AgentFunctions
     }
 
     [Function("UpdateAgentConfig")]
-    public HttpResponseData UpdateAgentConfig([HttpTrigger(AuthorizationLevel.Function, "post", Route = "api/config")] HttpRequestData req)
+    public HttpResponseData UpdateAgentConfig([HttpTrigger(AuthorizationLevel.Function, "post", Route = "config")] HttpRequestData req)
     {
         var requestBody = new StreamReader(req.Body).ReadToEnd();
         var newConfig = JsonSerializer.Deserialize<Dictionary<string, object>>(requestBody);
@@ -55,7 +55,7 @@ public class AgentFunctions
     }
 
     [Function("RunAgent")]
-    public HttpResponseData RunAgent([HttpTrigger(AuthorizationLevel.Function, "post", Route = "api/run")] HttpRequestData req)
+    public HttpResponseData RunAgent([HttpTrigger(AuthorizationLevel.Function, "post", Route = "run")] HttpRequestData req)
     {
         _agentMetadata.Status = "Running";
         _agentMetadata.LastRunTime = DateTime.UtcNow;

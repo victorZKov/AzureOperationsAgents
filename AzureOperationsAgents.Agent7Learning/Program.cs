@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.Hosting;
-using AzureOperationsAgents.Application.Interfaces;
 using AzureOperationsAgents.Application.Services;
+using AzureOperationsAgents.Core.Interfaces.Auditing;
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using AzureOperationsAgents.Infrastructure.Repositories;
 using Microsoft.Azure.Cosmos;
