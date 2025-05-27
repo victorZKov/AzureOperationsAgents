@@ -16,13 +16,14 @@ public class OpenAiService : IStreamChatService
     private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
     private readonly IWebSearchService _webSearchService;
+    private readonly IChatService _chatService;
     private readonly IUserConfigurationService _configurationService;
     private readonly IInstructionConfigurationService _instructionService;
     
     public string ConfiguredModelName => _defaultModel;
 
     public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, 
-                       IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService)
+                       IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService)
     {
         _httpClient = new HttpClient();
         _defaultModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
@@ -33,13 +34,13 @@ public class OpenAiService : IStreamChatService
         _webSearchService = webSearchService;
         _configurationService = configurationService;
         _instructionService = instructionService;
+        _chatService = chatService;
     }
 
-    public async Task<Stream> StreamChatCompletionAsync(string prompt, string model, string language, string userId, CancellationToken cancellationToken)
+    public async Task<Stream> StreamChatCompletionAsync(int chatId, string prompt, string model, string language, string userId, CancellationToken cancellationToken)
     {
         // Get user-specific configuration
         string apiKey = await _configurationService.GetOpenAIKeyForUserAsync(userId);
-        //string model = await _configurationService.GetOpenAIModelForUserAsync(userId);
         string endpoint = await _configurationService.GetOpenAIEndpointForUserAsync(userId);
         string url = $"{endpoint}/chat/completions";
         
@@ -47,67 +48,21 @@ public class OpenAiService : IStreamChatService
         var requestClient = new HttpClient();
         requestClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
-        List<string> embeddingSnippets = new List<string>();
-        List<string> webSnippets = new List<string>();
-
-        try
-        {
-            var relevantSnippets = await _embeddingService.SearchRelevantSnippetsAsync(userId, prompt, cancellationToken);
-            var knowledgeSnippets = relevantSnippets as KnowledgeSnippet[] ?? relevantSnippets.ToArray();
-            if (knowledgeSnippets.Any())
-            {
-                embeddingSnippets = knowledgeSnippets.Select(s => s.Content).ToList();
-            }
-
-            var webResults = await _webSearchService.SearchAsync(prompt, cancellationToken);
-            var webSearchResults = webResults as WebSearchResult[] ?? webResults.ToArray();
-            if (webSearchResults.Any())
-            {
-                webSnippets = webSearchResults.Select(r => r.Snippet).ToList();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error during embedding or web search: {ex.Message}");
-        }
-        var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
-        string systemInstructions = string.Empty;
+        var embeddingSnippets = await GetEmbeddingSnippets(userId, prompt, cancellationToken);
+        var webSnippets = await GetWebSnippets(prompt, cancellationToken);
+        var relevantHistory = await GetRelevantHistory(chatId, userId, cancellationToken);
+        var instructions = await GetInstructions(userId, cancellationToken);
         
-        if (instructions != null)
-        {
-            systemInstructions = instructions.Value;
-        }
-        systemInstructions = systemInstructions + ". You are an assistant combining company knowledge and live web data.";
-        var messages = new List<object>
-        {
-            new { role = "system", content = systemInstructions }
-        };
-
-        if (embeddingSnippets.Any())
-        {
-            messages.Add(new { role = "system", content = $"Relevant company knowledge:\n{string.Join("\n", embeddingSnippets)}" });
-        }
-
-        if (webSnippets.Any())
-        {
-            messages.Add(new { role = "system", content = $"Relevant web search results:\n{string.Join("\n", webSnippets)}" });
-        }
+        var requestBody = BuildBody(
+            instructions,
+            relevantHistory,
+            embeddingSnippets,
+            webSnippets,
+            prompt,
+            model,
+            userId
+        );
         
-        if (!string.IsNullOrWhiteSpace(language))
-        {
-            messages.Add(new { role = "system", content = $"The user prefers responses in {language}." });
-        }
-
-        messages.Add(new { role = "user", content = prompt });
-
-        var requestBody = new
-        {
-            model = model,
-            messages = messages,
-            stream = true,
-            user = userId
-        };
-
         var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(
@@ -189,6 +144,155 @@ public class OpenAiService : IStreamChatService
         }
 
         return passthroughStream;
+    }
+    
+    private async Task<List<string>> GetEmbeddingSnippets(string userId, string prompt, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var relevantSnippets = await _embeddingService.SearchRelevantSnippetsAsync(userId, prompt, cancellationToken);
+            var knowledgeSnippets = relevantSnippets as KnowledgeSnippet[] ?? relevantSnippets.ToArray();
+            if (knowledgeSnippets.Any())
+            {
+                var embeddingSnippets = knowledgeSnippets.Select(s => s.Content).ToList();
+                return embeddingSnippets;
+            }
+
+            return [];
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching embedding snippets: {ex.Message}");
+            return [];
+        }
+    }
+    
+    private async Task<List<string>> GetWebSnippets(string prompt, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var webResults = await _webSearchService.SearchAsync(prompt, cancellationToken);
+            var webSearchResults = webResults as WebSearchResult[] ?? webResults.ToArray();
+            if (webSearchResults.Any())
+            {
+                var webSnippets = webSearchResults.Select(r => r.Snippet).ToList();
+                return webSnippets;
+            }
+            return [];
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching web snippets: {ex.Message}");
+            return [];
+        }
+    }
+    
+    private async Task<List<string>> GetRelevantHistory(int chatId, string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var memoryContext = await _chatService.GetMessagesByChatAsync(chatId, userId);
+            var relevantMessages = await _chatService.GetRelevantMessages(userId, cancellationToken);
+            var result = new List<string>();
+            result.AddRange(memoryContext.Select(m => m.Message));
+            result.AddRange(relevantMessages.Select(m => m.Message));
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching user memory context: {ex.Message}");
+            return [];
+        }
+    }
+    
+    private async Task<string> GetInstructions(string userId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
+            return instructions?.Value ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error fetching instructions: {ex.Message}");
+            return string.Empty;
+        }
+    }
+    
+    private object BuildBody(
+        string instructions,
+        List<string> relevantHistory,
+        List<string> embeddingSnippets,
+        List<string> webSnippets,
+        string prompt,
+        string model,
+        string userId)
+    {
+        var messages = new List<Dictionary<string, string>>();
+
+        // Add system instructions
+        messages.Add(new Dictionary<string, string>
+        {
+            { "role", "system" },
+            { "content", instructions }
+        });
+
+        // Add user context
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            messages.Add(new Dictionary<string, string>
+            {
+                { "role", "system" },
+                { "content", $"User ID: {userId}" }
+            });
+        }
+
+        // Add relevant history
+        foreach (var message in relevantHistory)
+        {
+            messages.Add(new Dictionary<string, string>
+            {
+                { "role", "user" },
+                { "content", message }
+            });
+        }
+
+        // Add embedding snippets
+        if (embeddingSnippets.Any())
+        {
+            messages.Add(new Dictionary<string, string>
+            {
+                { "role", "system" },
+                { "content", $"Relevant company knowledge: {string.Join("\n", embeddingSnippets)}" }
+            });
+        }
+
+        // Add web snippets
+        if (webSnippets.Any())
+        {
+            messages.Add(new Dictionary<string, string>
+            {
+                { "role", "system" },
+                { "content", $"Relevant web search results: {string.Join("\n", webSnippets)}" }
+            });
+        }
+
+        // Add user prompt
+        messages.Add(new Dictionary<string, string>
+        {
+            { "role", "user" },
+            { "content", prompt }
+        });
+
+        var requestBody = new
+        {
+            model = model,
+            messages = messages,
+            stream = true,
+            user = userId
+        };
+
+        return requestBody;
     }
 }
 

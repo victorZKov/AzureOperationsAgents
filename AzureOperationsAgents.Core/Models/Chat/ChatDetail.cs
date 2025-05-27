@@ -12,4 +12,6 @@ public class ChatDetail
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
     public string? EngineName { get; set; }
     public string? ModelName { get; set; }
+    public bool? ThumbsUp { get; set; }
+    public bool? ThumbsDown { get; set; }
 }

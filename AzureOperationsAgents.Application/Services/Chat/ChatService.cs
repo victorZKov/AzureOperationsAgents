@@ -74,6 +74,59 @@ namespace AzureOperationsAgents.Application.Services.Chat
                 return await _repository.AssignChatToProjectAsync(chatHeaderId, projectId??0, userId);
             }
         }
+        
+        // New methods for like/dislike functionality
+        public async Task<bool> LikeMessageAsync(int messageId, string userId)
+        {
+            // Get the message to verify it exists
+            var message = await _repository.GetMessageByIdAsync(messageId);
+            if (message == null)
+            {
+                return false;
+            }
+            
+            // Validate that the user can access this message
+            var chatMessages = await _repository.GetChatMessagesAsync(message.ChatHeaderId, userId);
+            if (chatMessages.All(m => m.Id != messageId))
+            {
+                return false; // User doesn't have access to this message
+            }
+            
+            // Set the thumbs up value
+            return await _repository.LikeMessageAsync(messageId);
+        }
+        
+        public async Task<bool> DislikeMessageAsync(int messageId, string userId)
+        {
+            // Get the message to verify it exists
+            var message = await _repository.GetMessageByIdAsync(messageId);
+            if (message == null)
+            {
+                return false;
+            }
+            
+            // Validate that the user can access this message
+            var chatMessages = await _repository.GetChatMessagesAsync(message.ChatHeaderId, userId);
+            if (chatMessages.All(m => m.Id != messageId))
+            {
+                return false; // User doesn't have access to this message
+            }
+            
+            // Set the thumbs down value
+            return await _repository.DislikeMessageAsync(messageId);
+        }
+
+        public async Task<List<ChatDetail>> GetRelevantMessages(string userId, CancellationToken cancellationToken)
+        {
+            var messages = await _repository.GetRelevantMessagesAsync(userId, cancellationToken);
+            if (messages == null)
+            {
+                return new List<ChatDetail>();
+            }
+
+            return messages;
+
+        }
     }
 }
 

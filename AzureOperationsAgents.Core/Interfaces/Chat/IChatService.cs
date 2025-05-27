@@ -11,6 +11,11 @@ namespace AzureOperationsAgents.Core.Interfaces.Chat
         Task<bool> DeleteChatAsync(int chatHeaderId, string userId);
         
         Task<bool> AssignChatToProjectAsync(int chatHeaderId, int? projectId, string userId);
+        
+        // New methods for like/dislike functionality
+        Task<bool> LikeMessageAsync(int messageId, string userId);
+        Task<bool> DislikeMessageAsync(int messageId, string userId);
+        Task<List<ChatDetail>> GetRelevantMessages(string userId, CancellationToken cancellationToken);
     }
 }
 

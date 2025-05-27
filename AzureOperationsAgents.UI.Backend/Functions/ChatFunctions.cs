@@ -182,7 +182,7 @@ public class ChatFunctions
                 ? _defaultOpenAiModel
                 : conversationRequest.ModelName;
 
-            stream = await _openaiService.StreamChatCompletionAsync(conversationRequest.Prompt, model, conversationRequest.Language, userId, CancellationToken.None);
+            stream = await _openaiService.StreamChatCompletionAsync(conversationRequest.ChatHeaderId??0, conversationRequest.Prompt, model, conversationRequest.Language, userId, CancellationToken.None);
 
             await using var writer = new StreamWriter(response.Body);
             using var readerStream = new StreamReader(stream);
@@ -234,7 +234,7 @@ public class ChatFunctions
         }
         else if (conversationRequest.EngineName.Equals("ollama", StringComparison.OrdinalIgnoreCase))
         {
-            stream = await _ollamaService.StreamChatCompletionAsync(conversationRequest.Prompt, conversationRequest.ModelName, conversationRequest.Language, userId, CancellationToken.None);
+            stream = await _ollamaService.StreamChatCompletionAsync(conversationRequest.ChatHeaderId??0, conversationRequest.Prompt, conversationRequest.ModelName, conversationRequest.Language, userId, CancellationToken.None);
 
             await using var writer = new StreamWriter(response.Body);
             using var readerStream = new StreamReader(stream);
@@ -259,7 +259,39 @@ public class ChatFunctions
 
         return response;
     }
+
+    [Function("LikeMessage")]
+    public async Task<HttpResponseData> LikeMessage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "chats/messages/{messageId:int}/like")]
+        HttpRequestData req,
+        int messageId)
+    {
+        var userId = JwtUtils.GetSubFromAuthorizationHeader(req);
+        if (string.IsNullOrEmpty(userId))
+            return req.CreateResponse(HttpStatusCode.Unauthorized);
+        
+        var success = await _chatService.LikeMessageAsync(messageId, userId);
+        var response = req.CreateResponse(success ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+        return response;
+
+    }
+
+    [Function("DislikeMessage")]
+    public async Task<HttpResponseData> DislikeMessage(
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "chats/messages/{messageId:int}/dislike")]
+        HttpRequestData req,
+        int messageId)
+    {
+        var userId = JwtUtils.GetSubFromAuthorizationHeader(req);
+        if (string.IsNullOrEmpty(userId))
+            return req.CreateResponse(HttpStatusCode.Unauthorized);
+        var success = await _chatService.DislikeMessageAsync(messageId, userId);
+        var response = req.CreateResponse(success ? HttpStatusCode.OK : HttpStatusCode.NotFound);
+        return response;
+    }
 }
+
+
 
 
 

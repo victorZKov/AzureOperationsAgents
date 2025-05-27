@@ -61,8 +61,10 @@ namespace AzureOperationsAgents.Core.Context
                 entity.Property(d => d.Sender).IsRequired().HasMaxLength(20);
                 entity.Property(d => d.Message).IsRequired();
                 entity.Property(d => d.SentAt).IsRequired();
-                entity.Property(d => d.EngineName).HasMaxLength(50); // Added EngineName configuration
-                entity.Property(d => d.ModelName).HasMaxLength(100); // Added ModelName configuration
+                entity.Property(d => d.EngineName).HasMaxLength(50); 
+                entity.Property(d => d.ModelName).HasMaxLength(100); 
+                entity.Property(d => d.ThumbsUp).IsRequired(false);
+                entity.Property(d => d.ThumbsDown).IsRequired(false);
             });
             
             // KnowledgeSnippet entity

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AzureOperationsAgents.Core.Entities;
 
 namespace AzureOperationsAgents.Infrastructure.Repositories
 {
@@ -85,6 +86,50 @@ namespace AzureOperationsAgents.Infrastructure.Repositories
         {
             _context.ChatHeaders.Update(chat);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> LikeMessageAsync(int messageId)
+        {
+            var message = await _context.ChatDetails
+                .FirstOrDefaultAsync(m => m.Id == messageId);
+            if (message == null)
+            {
+                return false; // Message not found
+            }
+            message.ThumbsUp = true; // Set thumbs up
+            _context.ChatDetails.Update(message);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DislikeMessageAsync(int messageId)
+        {
+            var message = await _context.ChatDetails
+                .FirstOrDefaultAsync(m => m.Id == messageId);
+            if (message == null)
+            {
+                return false; // Message not found
+            }
+            message.ThumbsDown = true; // Set thumbs down
+            _context.ChatDetails.Update(message);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<ChatDetail?> GetMessageByIdAsync(int messageId)
+        {
+            var message = await _context.ChatDetails
+                .FirstOrDefaultAsync(m => m.Id == messageId);
+            return message;
+        }
+
+        public async Task<List<ChatDetail>> GetRelevantMessagesAsync(string userId, CancellationToken cancellationToken)
+        {
+            return await _context.ChatDetails
+                .Where(m => m.ChatHeader.UserId == userId && (m.ThumbsUp == true))
+                .OrderByDescending(m => m.SentAt)
+                .Take(20)
+                .ToListAsync(cancellationToken);
         }
     }
 }
