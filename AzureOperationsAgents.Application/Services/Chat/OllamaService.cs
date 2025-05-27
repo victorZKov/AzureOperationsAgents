@@ -24,6 +24,7 @@ public class OllamaService : IStreamChatService
     private readonly IChatService _chatService;
     private readonly IUserConfigurationService _configurationService;
     private readonly IInstructionConfigurationService _instructionService;
+    private readonly ChatContextHelper _contextHelper;
 
     public OllamaService(
         IConfiguration configuration,
@@ -31,22 +32,27 @@ public class OllamaService : IStreamChatService
         IKnowledgeService knowledgeService,
         IEmbeddingService embeddingService,
         IWebSearchService webSearchService,
-        IChatService chatService,
-        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService)
+        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService)
     {
         _dbContext = dbContext;
         _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
-        _chatService = chatService;
         _configurationService = configurationService;
         _instructionService = instructionService;
-
+        _chatService = chatService;
         _httpClient = new HttpClient();
         _baseUrl = string.IsNullOrEmpty(configuration["OllamaServer"])
             ? "http://localhost:11434/api/generate"
             : $"{configuration["OllamaServer"]}/api/generate";
         _modelName = configuration["OllamaModel"] ?? "mistral:latest";
+        _contextHelper = new ChatContextHelper(
+            embeddingService,
+            webSearchService,
+            instructionService,
+            _chatService,
+            dbContext
+        );
     }
 
     public async Task<Stream> StreamChatCompletionAsync(int chatId, string prompt, string ollamaModel, string language, string userId, CancellationToken cancellationToken)
@@ -54,10 +60,10 @@ public class OllamaService : IStreamChatService
         string ollamaServer = await _configurationService.GetOllamaServerForUserAsync(userId);
         string apiUrl = $"{ollamaServer}/api/generate";
 
-        var embeddingSnippets = await GetEmbeddingSnippets(userId, prompt, cancellationToken);
-        var webSnippets = await GetWebSnippets(prompt, cancellationToken);
-        var relevantHistory = await GetRelevantHistory(chatId, userId, cancellationToken);
-        var instructions = await GetInstructions(userId, cancellationToken);
+        var embeddingSnippets = await _contextHelper.GetEmbeddingSnippets(userId, prompt, cancellationToken);
+        var webSnippets = await _contextHelper.GetWebSnippets(prompt, cancellationToken);
+        var relevantHistory = await _contextHelper.GetRelevantHistory(chatId, userId, cancellationToken);
+        var instructions = await _contextHelper.GetInstructions(userId, cancellationToken);
 
         var fullPromptBuilder = new StringBuilder();
         if (!string.IsNullOrWhiteSpace(instructions))
@@ -65,7 +71,6 @@ public class OllamaService : IStreamChatService
             fullPromptBuilder.AppendLine(instructions);
         }
         fullPromptBuilder.AppendLine("You are an assistant combining company knowledge and live web data.");
-
         if (relevantHistory.Any())
         {
             fullPromptBuilder.AppendLine("\nRelevant chat history:");
@@ -88,7 +93,6 @@ public class OllamaService : IStreamChatService
             fullPromptBuilder.AppendLine($"\nPlease respond in {language}.");
         }
         var fullPrompt = fullPromptBuilder.ToString();
-
         var payload = new
         {
             model = ollamaModel,
@@ -151,75 +155,5 @@ public class OllamaService : IStreamChatService
             }
         }
         return passthroughStream;
-    }
-
-    private async Task<List<string>> GetEmbeddingSnippets(string userId, string prompt, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var relevantSnippets = await _embeddingService.SearchRelevantSnippetsAsync(userId, prompt, cancellationToken);
-            var knowledgeSnippets = relevantSnippets as KnowledgeSnippet[] ?? relevantSnippets.ToArray();
-            if (knowledgeSnippets.Any())
-            {
-                return knowledgeSnippets.Select(s => s.Content).ToList();
-            }
-            return new List<string>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching embedding snippets: {ex.Message}");
-            return new List<string>();
-        }
-    }
-
-    private async Task<List<string>> GetWebSnippets(string prompt, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var webResults = await _webSearchService.SearchAsync(prompt, cancellationToken);
-            var webSearchResults = webResults as WebSearchResult[] ?? webResults.ToArray();
-            if (webSearchResults.Any())
-            {
-                return webSearchResults.Select(r => r.Snippet).ToList();
-            }
-            return new List<string>();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching web snippets: {ex.Message}");
-            return new List<string>();
-        }
-    }
-
-    private async Task<List<string>> GetRelevantHistory(int chatId, string userId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var memoryContext = await _chatService.GetMessagesByChatAsync(chatId, userId);
-            var relevantMessages = await _chatService.GetRelevantMessages(userId, cancellationToken);
-            var result = new List<string>();
-            result.AddRange(memoryContext.Select(m => m.Message));
-            result.AddRange(relevantMessages.Select(m => m.Message));
-            return result;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching user memory context: {ex.Message}");
-            return [];
-        }
-    }
-
-    private async Task<string> GetInstructions(string userId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
-            return instructions?.Value ?? string.Empty;
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error fetching instructions: {ex.Message}");
-            return string.Empty;
-        }
     }
 }

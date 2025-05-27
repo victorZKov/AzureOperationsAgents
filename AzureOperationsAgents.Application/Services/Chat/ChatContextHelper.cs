@@ -66,57 +66,23 @@ public class ChatContextHelper
         }
     }
 
-    // For OpenAiService: use _chatService; for OllamaService: use _dbContext
     public async Task<List<string>> GetRelevantHistory(int chatId, string userId, CancellationToken cancellationToken)
     {
-        if (_chatService != null)
+        try
         {
-            try
-            {
-                var memoryContext = await _chatService.GetMessagesByChatAsync(chatId, userId);
-                var relevantMessages = await _chatService.GetRelevantMessages(userId, cancellationToken);
-                var result = new List<string>();
-                result.AddRange(memoryContext.Select(m => m.Message));
-                result.AddRange(relevantMessages.Select(m => m.Message));
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching user memory context: {ex.Message}");
-                return new List<string>();
-            }
+            var memoryContext = await _chatService.GetMessagesByChatAsync(chatId, userId);
+            var relevantMessages = await _chatService.GetRelevantMessages(userId, cancellationToken);
+            var result = new List<string>();
+            result.AddRange(memoryContext.Select(m => m.Message));
+            result.AddRange(relevantMessages.Select(m => m.Message));
+            return result;
         }
-        else if (_dbContext != null)
+        catch (Exception ex)
         {
-            try
-            {
-                var userMessages = await _dbContext.Set<dynamic>()
-                    .Where(cd => cd.ChatId == chatId && cd.Sender == "user")
-                    .OrderBy(cd => cd.SentAt)
-                    .Take(10)
-                    .Select(cd => $"User: {cd.Message}")
-                    .ToListAsync(cancellationToken);
-                var assistantMessages = await _dbContext.Set<dynamic>()
-                    .Where(cd => cd.ChatId == chatId && cd.Sender == "assistant")
-                    .OrderBy(cd => cd.SentAt)
-                    .Take(10)
-                    .Select(cd => $"Assistant: {cd.Message}")
-                    .ToListAsync(cancellationToken);
-                var result = new List<string>();
-                result.AddRange(userMessages);
-                result.AddRange(assistantMessages);
-                return result;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching chat history: {ex.Message}");
-                return new List<string>();
-            }
+            Console.WriteLine($"Error fetching user memory context: {ex.Message}");
+            return new List<string>();
         }
-        else
-        {
-            throw new InvalidOperationException("No chat context provider available.");
-        }
+
     }
 
     public async Task<string> GetInstructions(string userId, CancellationToken cancellationToken)
