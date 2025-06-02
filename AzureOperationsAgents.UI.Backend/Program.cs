@@ -19,6 +19,7 @@ using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using AzureOperationsAgents.Core.Interfaces;
 using AzureOperationsAgents.Core.Interfaces.Files; // Added for IModelRepository and IModelService
+using Qdrant.Client;
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(config =>
@@ -46,17 +47,19 @@ var host = Host.CreateDefaultBuilder()
         services.AddScoped<IChatService, ChatService>();
         
         // ChatService de Ollama
-        services.AddSingleton<OllamaService>();
-        services.AddSingleton<OpenAiService>();
+        services.AddScoped<OllamaService>();
+        services.AddScoped<OpenAiService>();
         
         // Repositorio y servicio de snippets
         services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();
         services.AddScoped<IKnowledgeService, KnowledgeService>();
+        
         // Servicio de búsqueda web
         services.AddScoped<IWebSearchService, SerperWebSearchService>();
         
         // Servicio de embedding
         services.AddScoped<IEmbeddingService, EmbeddingService>();
+        services.AddScoped<IQdrantService, QdrantService>();
         
         // Repositorio y servicio de configuración
         services.AddScoped<IUserConfigurationRepository, UserConfigurationRepository>();

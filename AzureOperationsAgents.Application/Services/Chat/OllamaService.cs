@@ -14,16 +14,9 @@ namespace AzureOperationsAgents.Application.Services.Chat;
 public class OllamaService : IStreamChatService
 {
     private readonly HttpClient _httpClient;
-    private readonly string _baseUrl;
-    private readonly string _modelName;
-    public string ConfiguredModelName => _modelName;
-    private readonly AzureOperationsDbContext _dbContext;
-    private readonly IKnowledgeService _knowledgeService;
     private readonly IEmbeddingService _embeddingService;
-    private readonly IWebSearchService _webSearchService;
-    private readonly IChatService _chatService;
+    //private readonly IChatService _chatService;
     private readonly IUserConfigurationService _configurationService;
-    private readonly IInstructionConfigurationService _instructionService;
     private readonly ChatContextHelper _contextHelper;
     private readonly IQdrantService _qdrantService;
 
@@ -33,27 +26,21 @@ public class OllamaService : IStreamChatService
         IKnowledgeService knowledgeService,
         IEmbeddingService embeddingService,
         IWebSearchService webSearchService,
-        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService, IQdrantService qdrantService)
+        IUserConfigurationService configurationService, 
+        IInstructionConfigurationService instructionService, 
+        IChatService chatService, 
+        IQdrantService qdrantService)
     {
-        _dbContext = dbContext;
-        _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
-        _webSearchService = webSearchService;
         _configurationService = configurationService;
-        _instructionService = instructionService;
-        _chatService = chatService;
         _qdrantService = qdrantService;
         _httpClient = new HttpClient();
-        _baseUrl = string.IsNullOrEmpty(configuration["OllamaServer"])
-            ? "http://localhost:11434/api/generate"
-            : $"{configuration["OllamaServer"]}/api/generate";
-        _modelName = configuration["OllamaModel"] ?? "mistral:latest";
         _contextHelper = new ChatContextHelper(
             embeddingService,
             webSearchService,
             instructionService,
             qdrantService,
-            _chatService,
+            chatService,
             dbContext
         );
     }

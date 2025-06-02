@@ -1,17 +1,13 @@
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
-using static Qdrant.Client.Grpc.Conditions;
+
+namespace AzureOperationsAgents.Application.Services.Learning;
 
 public class QdrantService : IQdrantService
 {
-    private readonly QdrantClient _client;
+    private readonly QdrantClient _client = new("localhost:6334");
     private const string CollectionName = "user-private-embeddings";
-
-    public QdrantService(QdrantClient client)
-    {
-        _client = client;
-    }
 
     public async Task UpsertSnippetAsync(string userId, string chatTitle, string content, float[] embedding)
     {
@@ -29,21 +25,21 @@ public class QdrantService : IQdrantService
     }
 
     public async Task<List<(string content, float score)>> SearchRelevantSnippetsAsync(
-       string userId, float[] embedding, int topK = 5)
+        string userId, float[] embedding, int topK = 5)
     {
         var filter = new Filter
         {
             Must =
-          {
-              new Condition
-              {
-                  Field = new FieldCondition
-                  {
-                      Key = "userId",
-                      Match = new Match { Keyword = userId } // Fix: Replace 'MatchCondition' with 'Match' and use 'Keyword' property  
-                  }
-              }
-          }
+            {
+                new Condition
+                {
+                    Field = new FieldCondition
+                    {
+                        Key = "userId",
+                        Match = new Match { Keyword = userId } // Fix: Replace 'MatchCondition' with 'Match' and use 'Keyword' property  
+                    }
+                }
+            }
         };
 
         var results = await _client.SearchAsync(
