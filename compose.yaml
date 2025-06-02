@@ -12,7 +12,17 @@
       - ./mssql_data:/var/opt/mssql
     networks:
       - backendnet
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - ./qdrant_data:/qdrant/storage
+    networks:
+      - backendnet
 
+  # Uncomment if you want to use Ollama for LLM operations
 #  ollama:
 #    image: ollama/ollama
 #    container_name: ollama
