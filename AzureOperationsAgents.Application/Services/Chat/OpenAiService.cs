@@ -20,11 +20,11 @@ public class OpenAiService : IStreamChatService
     private readonly IUserConfigurationService _configurationService;
     private readonly IInstructionConfigurationService _instructionService;
     private readonly ChatContextHelper _contextHelper;
+    private readonly IQdrantService _qdrantService;
     
     public string ConfiguredModelName => _defaultModel;
 
-    public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, 
-                       IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService)
+    public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService, IQdrantService qdrantService)
     {
         _httpClient = new HttpClient();
         _defaultModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
@@ -36,10 +36,12 @@ public class OpenAiService : IStreamChatService
         _configurationService = configurationService;
         _instructionService = instructionService;
         _chatService = chatService;
+        _qdrantService = qdrantService;
         _contextHelper = new ChatContextHelper(
             embeddingService,
             webSearchService,
             instructionService,
+            qdrantService,
             chatService,
             null // no dbContext for OpenAiService
         );
@@ -143,7 +145,9 @@ public class OpenAiService : IStreamChatService
             try
             {
                 var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
-                await _knowledgeService.SaveSnippetAsync(userId, chatTitle, finalText, embedding, cancellationToken);
+                await _qdrantService.UpsertSnippetAsync(userId, chatTitle, finalText, embedding);
+                //var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
+                //await _knowledgeService.SaveSnippetAsync(userId, chatTitle, finalText, embedding, cancellationToken);
             }
             catch (Exception ex)
             {

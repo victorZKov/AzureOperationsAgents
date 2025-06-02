@@ -25,6 +25,7 @@ public class OllamaService : IStreamChatService
     private readonly IUserConfigurationService _configurationService;
     private readonly IInstructionConfigurationService _instructionService;
     private readonly ChatContextHelper _contextHelper;
+    private readonly IQdrantService _qdrantService;
 
     public OllamaService(
         IConfiguration configuration,
@@ -32,7 +33,7 @@ public class OllamaService : IStreamChatService
         IKnowledgeService knowledgeService,
         IEmbeddingService embeddingService,
         IWebSearchService webSearchService,
-        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService)
+        IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService, IQdrantService qdrantService)
     {
         _dbContext = dbContext;
         _knowledgeService = knowledgeService;
@@ -41,6 +42,7 @@ public class OllamaService : IStreamChatService
         _configurationService = configurationService;
         _instructionService = instructionService;
         _chatService = chatService;
+        _qdrantService = qdrantService;
         _httpClient = new HttpClient();
         _baseUrl = string.IsNullOrEmpty(configuration["OllamaServer"])
             ? "http://localhost:11434/api/generate"
@@ -50,6 +52,7 @@ public class OllamaService : IStreamChatService
             embeddingService,
             webSearchService,
             instructionService,
+            qdrantService,
             _chatService,
             dbContext
         );
@@ -147,7 +150,9 @@ public class OllamaService : IStreamChatService
             try
             {
                 var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
-                await _knowledgeService.SaveSnippetAsync(userId, chatTitle, finalText, embedding, cancellationToken);
+                await _qdrantService.UpsertSnippetAsync(userId, chatTitle, finalText, embedding);
+                //var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
+                //await _knowledgeService.SaveSnippetAsync(userId, chatTitle, finalText, embedding, cancellationToken);
             }
             catch (Exception ex)
             {

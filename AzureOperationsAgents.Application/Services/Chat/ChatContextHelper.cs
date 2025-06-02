@@ -13,17 +13,18 @@ public class ChatContextHelper
     private readonly IInstructionConfigurationService _instructionService;
     private readonly IChatService? _chatService;
     private readonly DbContext? _dbContext;
+    private readonly IQdrantService _qdrantService;
 
     public ChatContextHelper(
         IEmbeddingService embeddingService,
         IWebSearchService webSearchService,
-        IInstructionConfigurationService instructionService,
-        IChatService? chatService = null,
+        IInstructionConfigurationService instructionService, IQdrantService qdrantService, IChatService? chatService = null,
         DbContext? dbContext = null)
     {
         _embeddingService = embeddingService;
         _webSearchService = webSearchService;
         _instructionService = instructionService;
+        _qdrantService = qdrantService;
         _chatService = chatService;
         _dbContext = dbContext;
     }
@@ -32,11 +33,17 @@ public class ChatContextHelper
     {
         try
         {
-            var relevantSnippets = await _embeddingService.SearchRelevantSnippetsAsync(userId, prompt, cancellationToken);
-            var knowledgeSnippets = relevantSnippets as KnowledgeSnippet[] ?? relevantSnippets.ToArray();
-            if (knowledgeSnippets.Any())
+            var promptEmbedding = await _embeddingService.GetEmbeddingAsync(prompt, cancellationToken);
+            var relevantSnippets = await _qdrantService.SearchRelevantSnippetsAsync(userId, promptEmbedding);
+            //var relevantSnippets = await _embeddingService.SearchRelevantSnippetsAsync(userId, prompt, cancellationToken);
+            //var knowledgeSnippets = relevantSnippets as KnowledgeSnippet[] ?? relevantSnippets.ToArray();
+            //if (knowledgeSnippets.Any())
+            //{
+            //    return knowledgeSnippets.Select(s => s.Content).ToList();
+            //}
+            if (relevantSnippets.Any())
             {
-                return knowledgeSnippets.Select(s => s.Content).ToList();
+                return relevantSnippets.Select(s => s.content).ToList();
             }
             return new List<string>();
         }

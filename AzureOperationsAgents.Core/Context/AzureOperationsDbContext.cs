@@ -1,9 +1,11 @@
 using AzureOperationsAgents.Core.Entities;
 using AzureOperationsAgents.Core.Models.Chat;
 using AzureOperationsAgents.Core.Models.Configuration;
+using AzureOperationsAgents.Core.Models.Files;
 using AzureOperationsAgents.Core.Models.Learning;
 using AzureOperationsAgents.Core.Models.Projects;
 using Microsoft.EntityFrameworkCore;
+using File = AzureOperationsAgents.Core.Models.Files.File;
 
 namespace AzureOperationsAgents.Core.Context
 {
@@ -21,6 +23,8 @@ namespace AzureOperationsAgents.Core.Context
         public DbSet<UserConfiguration> UserConfigurations { get; set; }
         public DbSet<ModelEntity> Models { get; set; }
         public DbSet<InstructionConfiguration> InstructionConfigurations { get; set; }
+        public DbSet<File> Files { get; set; }
+        public DbSet<Folder> Folders { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -169,6 +173,43 @@ namespace AzureOperationsAgents.Core.Context
                 entity.Property(c => c.CreatedAt).IsRequired();
                 entity.Property(c => c.UpdatedAt).IsRequired();
                 entity.Property(c => c.IsActive).IsRequired().HasDefaultValue(true);
+            });
+            
+            // File entity
+            modelBuilder.Entity<File>(entity =>
+            {
+                entity.HasKey(f => f.Id);
+                entity.Property(f => f.Owner).IsRequired();
+                entity.Property(f => f.Name).IsRequired().HasMaxLength(200);
+                entity.Property(f => f.Url).IsRequired();
+                entity.Property(f => f.Size).IsRequired();
+                entity.Property(f => f.Type).IsRequired().HasMaxLength(10);
+                entity.Property(f => f.CreatedAt).IsRequired();
+                entity.Property(f => f.ModifiedAt).IsRequired();
+                entity.Property(f => f.Description).HasMaxLength(500);
+                
+                entity.HasOne<Folder>()
+                    .WithMany()
+                    .HasForeignKey(f => f.FolderId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+            
+            // Folder entity
+            modelBuilder.Entity<Folder>(entity =>
+            {
+                entity.HasKey(f => f.Id);
+                entity.Property(f => f.Owner).IsRequired();
+                entity.Property(f => f.Name).IsRequired().HasMaxLength(100);
+                entity.Property(f => f.Color).HasMaxLength(10);
+                entity.Property(f => f.Size).IsRequired();
+                entity.Property(f => f.CreatedAt).IsRequired();
+                entity.Property(f => f.ModifiedAt).IsRequired();
+                entity.Property(f => f.Type).IsRequired().HasMaxLength(10);
+                
+                entity.HasOne<Folder>()
+                    .WithMany()
+                    .HasForeignKey(f => f.ParentId)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

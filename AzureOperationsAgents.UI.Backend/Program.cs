@@ -1,7 +1,8 @@
 using AzureOperationsAgents.Application.Services.Chat;
 using AzureOperationsAgents.Application.Services.Configuration;
 using AzureOperationsAgents.Application.Services.Learning;
-using AzureOperationsAgents.Application.Services; // Added for ModelService
+using AzureOperationsAgents.Application.Services;
+using AzureOperationsAgents.Application.Services.Files; // Added for ModelService
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -16,7 +17,8 @@ using AzureOperationsAgents.Application.Services.Scripting;
 using AzureOperationsAgents.Core.Interfaces.Chat;
 using AzureOperationsAgents.Core.Interfaces.Configuration;
 using AzureOperationsAgents.Core.Interfaces.Learning;
-using AzureOperationsAgents.Core.Interfaces; // Added for IModelRepository and IModelService
+using AzureOperationsAgents.Core.Interfaces;
+using AzureOperationsAgents.Core.Interfaces.Files; // Added for IModelRepository and IModelService
 
 var host = Host.CreateDefaultBuilder()
     .ConfigureAppConfiguration(config =>
@@ -67,6 +69,10 @@ var host = Host.CreateDefaultBuilder()
         // Repositorio y servicio de configuración de instrucciones
         services.AddScoped<IInstructionConfigurationRepository, InstructionConfigurationRepository>();
         services.AddScoped<IInstructionConfigurationService, InstructionConfigurationService>();
+        
+        // Repositorio y servicio de archivos
+        services.AddScoped<IFilesService, FilesService>();
+        
         
         // // Servicio de generación de scripts (LLM)
         // services.AddHttpClient<IScriptGenerationService, ScriptGenerationService>(client =>

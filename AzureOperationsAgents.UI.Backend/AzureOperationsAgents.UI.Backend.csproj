@@ -21,6 +21,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.5" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Qdrant.Client" Version="1.14.0" />
   </ItemGroup>
   <ItemGroup>
     <None Update="host.json">
