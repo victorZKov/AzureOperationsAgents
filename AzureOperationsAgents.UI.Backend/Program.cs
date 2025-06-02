@@ -46,8 +46,8 @@ var host = Host.CreateDefaultBuilder()
         services.AddScoped<IChatService, ChatService>();
         
         // ChatService de Ollama
-        services.AddScoped<OllamaService>();
-        services.AddScoped<OpenAiService>();
+        services.AddSingleton<OllamaService>();
+        services.AddSingleton<OpenAiService>();
         
         // Repositorio y servicio de snippets
         services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();

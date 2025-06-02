@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AzureOperationsAgents.Core.Interfaces.Learning;
-using Google.Protobuf;
-using Google.Protobuf.WellKnownTypes;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
+using static Qdrant.Client.Grpc.Conditions;
 
 public class QdrantService : IQdrantService
 {
@@ -22,60 +17,45 @@ public class QdrantService : IQdrantService
     {
         var point = new PointStruct
         {
-            Id = Guid.NewGuid().ToString(),
-            Vectors = new Vectors { Vector = { embedding } },
-            Payload = new Struct
-            {
-                Fields =
-                {
-                    { "userId", Value.ForString(userId) },
-                    { "chatTitle", Value.ForString(chatTitle) },
-                    { "content", Value.ForString(content) }
-                }
-            }
+            Id = new PointId { Uuid = Guid.NewGuid().ToString() },
+            Vectors = new Vectors { Vector = new Vector { Data = { embedding } } },
         };
 
-        var upsertRequest = new UpsertPoints
-        {
-            CollectionName = CollectionName,
-            Points = { point }
-        };
+        point.Payload.Add("userId", new Value { StringValue = userId });
+        point.Payload.Add("chatTitle", new Value { StringValue = chatTitle });
+        point.Payload.Add("content", new Value { StringValue = content });
 
-        await _client.UpsertAsync(upsertRequest);
+        await _client.UpsertAsync(CollectionName, new[] { point });
     }
 
-    public async Task<List<(string content, float score)>> SearchRelevantSnippetsAsync(string userId, float[] embedding, int topK = 5)
+    public async Task<List<(string content, float score)>> SearchRelevantSnippetsAsync(
+       string userId, float[] embedding, int topK = 5)
     {
         var filter = new Filter
         {
             Must =
-            {
-                new Condition
-                {
-                    FieldCondition = new FieldCondition
-                    {
-                        Key = "userId",
-                        Match = new Match
-                        {
-                            Keyword = userId
-                        }
-                    }
-                }
-            }
+          {
+              new Condition
+              {
+                  Field = new FieldCondition
+                  {
+                      Key = "userId",
+                      Match = new Match { Keyword = userId } // Fix: Replace 'MatchCondition' with 'Match' and use 'Keyword' property  
+                  }
+              }
+          }
         };
 
-        var searchRequest = new SearchPoints
-        {
-            CollectionName = CollectionName,
-            Vector = { embedding },
-            Limit = (uint)topK,
-            Filter = filter
-        };
+        var results = await _client.SearchAsync(
+            CollectionName,
+            embedding,
+            filter: filter,
+            limit: (uint)topK
+        );
 
-        var result = await _client.SearchAsync(searchRequest);
-
-        return result.Results
-            .Select(r => (r.Payload.Fields["content"].StringValue, r.Score))
-            .ToList();
+        return results.Select(r => (
+            r.Payload["content"].StringValue,
+            (float)r.Score
+        )).ToList();
     }
 }
