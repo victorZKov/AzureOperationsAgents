@@ -1,10 +1,10 @@
-using AzureOperationsAgents.Core.Interfaces.Chat;
-using Microsoft.Extensions.Configuration;
+// Updated OpenAiService.cs with streaming + final embedding save
 using System.Text;
 using System.Text.Json;
+using AzureOperationsAgents.Core.Interfaces.Chat;
 using AzureOperationsAgents.Core.Interfaces.Learning;
-using AzureOperationsAgents.Core.Models.Learning;
 using AzureOperationsAgents.Core.Interfaces.Configuration;
+using Microsoft.Extensions.Configuration;
 
 namespace AzureOperationsAgents.Application.Services.Chat;
 
@@ -12,30 +12,30 @@ public class OpenAiService : IStreamChatService
 {
     private readonly HttpClient _httpClient;
     private readonly string _defaultModel;
-    private readonly string _baseUrl = "https://api.openai.com/v1";
-    private readonly IKnowledgeService _knowledgeService;
+    private readonly string _baseUrl;
     private readonly IEmbeddingService _embeddingService;
-    private readonly IWebSearchService _webSearchService;
-    private readonly IChatService _chatService;
     private readonly IUserConfigurationService _configurationService;
-    private readonly IInstructionConfigurationService _instructionService;
     private readonly ChatContextHelper _contextHelper;
     private readonly IQdrantService _qdrantService;
-    
+
     public string ConfiguredModelName => _defaultModel;
 
-    public OpenAiService(IConfiguration configuration, IKnowledgeService knowledgeService, IEmbeddingService embeddingService, IWebSearchService webSearchService, IUserConfigurationService configurationService, IInstructionConfigurationService instructionService, IChatService chatService, IQdrantService qdrantService)
+    public OpenAiService(
+        IConfiguration configuration,
+        IKnowledgeService knowledgeService,
+        IEmbeddingService embeddingService,
+        IWebSearchService webSearchService,
+        IUserConfigurationService configurationService,
+        IInstructionConfigurationService instructionService,
+        IChatService chatService,
+        IQdrantService qdrantService)
     {
         _httpClient = new HttpClient();
         _defaultModel = configuration["OpenAIModel"] ?? "gpt-3.5-turbo";
-        var defaultUrl = configuration["OpenAIEndpoint"] ?? _baseUrl;
+        var defaultUrl = configuration["OpenAIEndpoint"] ?? "https://api.openai.com/v1";
         _baseUrl = $"{defaultUrl}/chat/completions";
-        _knowledgeService = knowledgeService;
         _embeddingService = embeddingService;
-        _webSearchService = webSearchService;
         _configurationService = configurationService;
-        _instructionService = instructionService;
-        _chatService = chatService;
         _qdrantService = qdrantService;
         _contextHelper = new ChatContextHelper(
             embeddingService,
@@ -43,18 +43,18 @@ public class OpenAiService : IStreamChatService
             instructionService,
             qdrantService,
             chatService,
-            null // no dbContext for OpenAiService
+            null // no dbContext needed here
         );
     }
 
-    public async Task<Stream> StreamChatCompletionAsync(int chatId, string prompt, string model, string language, string userId, CancellationToken cancellationToken)
+    public async Task StreamChatCompletionAsync(
+        int chatId, string prompt, string model, string language, string userId,
+        CancellationToken cancellationToken, Func<string, Task> onResponse)
     {
-        // Get user-specific configuration
         string apiKey = await _configurationService.GetOpenAIKeyForUserAsync(userId);
         string endpoint = await _configurationService.GetOpenAIEndpointForUserAsync(userId);
         string url = $"{endpoint}/chat/completions";
-        
-        // Set up HttpClient with the user's API key
+
         var requestClient = new HttpClient();
         requestClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {apiKey}");
 
@@ -62,40 +62,20 @@ public class OpenAiService : IStreamChatService
         var webSnippets = await _contextHelper.GetWebSnippets(prompt, cancellationToken);
         var relevantHistory = await _contextHelper.GetRelevantHistory(chatId, userId, cancellationToken);
         var instructions = await _contextHelper.GetInstructions(userId, cancellationToken);
-        
-        var requestBody = BuildBody(
-            instructions,
-            relevantHistory,
-            embeddingSnippets,
-            webSnippets,
-            prompt,
-            model,
-            userId
-        );
-        
+
+        var requestBody = BuildBody(instructions, relevantHistory, embeddingSnippets, webSnippets, prompt, model, userId);
+
         var request = new HttpRequestMessage(HttpMethod.Post, url)
         {
-            Content = new StringContent(
-                JsonSerializer.Serialize(requestBody),
-                Encoding.UTF8,
-                "application/json"
-            )
+            Content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json")
         };
 
-        var response = await requestClient.SendAsync(
-            request,
-            HttpCompletionOption.ResponseHeadersRead,
-            cancellationToken
-        );
-
+        var response = await requestClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
-
         var responseStream = await response.Content.ReadAsStreamAsync(cancellationToken);
         var reader = new StreamReader(responseStream);
-        var collectedResponse = new StringBuilder();
 
-        var passthroughStream = new MemoryStream();
-        var passthroughWriter = new StreamWriter(passthroughStream, Encoding.UTF8) { AutoFlush = true };
+        var collectedResponse = new StringBuilder();
 
         while (!reader.EndOfStream)
         {
@@ -119,8 +99,7 @@ public class OpenAiService : IStreamChatService
                     if (!string.IsNullOrEmpty(content))
                     {
                         collectedResponse.Append(content);
-                        await passthroughWriter.WriteLineAsync($"data: {jsonLine}");
-                        await passthroughWriter.FlushAsync(cancellationToken);
+                        await onResponse(content);
                     }
                 }
             }
@@ -130,8 +109,6 @@ public class OpenAiService : IStreamChatService
                 continue;
             }
         }
-
-        passthroughStream.Position = 0;
 
         var finalText = collectedResponse.ToString();
         if (!string.IsNullOrWhiteSpace(finalText))
@@ -146,18 +123,14 @@ public class OpenAiService : IStreamChatService
             {
                 var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
                 await _qdrantService.UpsertSnippetAsync(userId, chatTitle, finalText, embedding);
-                //var embedding = await _embeddingService.GetEmbeddingAsync(finalText, cancellationToken);
-                //await _knowledgeService.SaveSnippetAsync(userId, chatTitle, finalText, embedding, cancellationToken);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error saving assistant response snippet: {ex.Message}");
             }
         }
-
-        return passthroughStream;
     }
-    
+
     private object BuildBody(
         string instructions,
         List<string> relevantHistory,
@@ -167,71 +140,33 @@ public class OpenAiService : IStreamChatService
         string model,
         string userId)
     {
-        var messages = new List<Dictionary<string, string>>();
-
-        // Add system instructions
-        messages.Add(new Dictionary<string, string>
+        var messages = new List<Dictionary<string, string>>
         {
-            { "role", "system" },
-            { "content", instructions }
-        });
-
-        // Add user context
-        if (!string.IsNullOrWhiteSpace(userId))
-        {
-            messages.Add(new Dictionary<string, string>
-            {
-                { "role", "system" },
-                { "content", $"User ID: {userId}" }
-            });
-        }
-
-        // Add relevant history
-        foreach (var message in relevantHistory)
-        {
-            messages.Add(new Dictionary<string, string>
-            {
-                { "role", "user" },
-                { "content", message }
-            });
-        }
-
-        // Add embedding snippets
-        if (embeddingSnippets.Any())
-        {
-            messages.Add(new Dictionary<string, string>
-            {
-                { "role", "system" },
-                { "content", $"Relevant company knowledge: {string.Join("\n", embeddingSnippets)}" }
-            });
-        }
-
-        // Add web snippets
-        if (webSnippets.Any())
-        {
-            messages.Add(new Dictionary<string, string>
-            {
-                { "role", "system" },
-                { "content", $"Relevant web search results: {string.Join("\n", webSnippets)}" }
-            });
-        }
-
-        // Add user prompt
-        messages.Add(new Dictionary<string, string>
-        {
-            { "role", "user" },
-            { "content", prompt }
-        });
-
-        var requestBody = new
-        {
-            model = model,
-            messages = messages,
-            stream = true,
-            user = userId
+            new() { { "role", "system" }, { "content", instructions } }
         };
 
-        return requestBody;
+        if (!string.IsNullOrWhiteSpace(userId))
+        {
+            messages.Add(new() { { "role", "system" }, { "content", $"User ID: {userId}" } });
+        }
+
+        foreach (var message in relevantHistory)
+        {
+            messages.Add(new() { { "role", "user" }, { "content", message } });
+        }
+
+        if (embeddingSnippets.Any())
+        {
+            messages.Add(new() { { "role", "system" }, { "content", $"Relevant company knowledge: {string.Join("\n", embeddingSnippets)}" } });
+        }
+
+        if (webSnippets.Any())
+        {
+            messages.Add(new() { { "role", "system" }, { "content", $"Relevant web search results: {string.Join("\n", webSnippets)}" } });
+        }
+
+        messages.Add(new() { { "role", "user" }, { "content", prompt } });
+
+        return new { model, messages, stream = true, user = userId };
     }
 }
-

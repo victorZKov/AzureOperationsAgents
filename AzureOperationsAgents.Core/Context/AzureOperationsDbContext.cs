@@ -209,7 +209,7 @@ namespace AzureOperationsAgents.Core.Context
                 entity.HasOne<Folder>()
                     .WithMany()
                     .HasForeignKey(f => f.ParentId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

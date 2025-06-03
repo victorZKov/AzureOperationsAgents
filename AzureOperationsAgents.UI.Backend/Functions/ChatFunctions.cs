@@ -142,10 +142,10 @@ public class ChatFunctions
         return response;
     }
 
+    // ChatConversation Function
     [Function("ChatConversation")]
     public async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "chat/conversation")]
-        HttpRequestData req,
+        [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "chat/conversation")] HttpRequestData req,
         FunctionContext executionContext)
     {
         var logger = executionContext.GetLogger("ChatConversation");
@@ -156,7 +156,6 @@ public class ChatFunctions
 
         if (conversationRequest == null || string.IsNullOrEmpty(conversationRequest.Prompt))
         {
-            logger.LogError("Missing or invalid prompt.");
             var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
             await badResponse.WriteStringAsync("Missing or invalid prompt.");
             return badResponse;
@@ -165,93 +164,63 @@ public class ChatFunctions
         var userId = JwtUtils.GetSubFromAuthorizationHeader(req);
         if (string.IsNullOrEmpty(userId))
         {
-            logger.LogWarning("User ID not found in token.");
             var unauthorizedResponse = req.CreateResponse(HttpStatusCode.Unauthorized);
             await unauthorizedResponse.WriteStringAsync("User ID not found in token.");
             return unauthorizedResponse;
         }
 
-        HttpResponseData response = req.CreateResponse(HttpStatusCode.OK);
+        var response = req.CreateResponse(HttpStatusCode.OK);
         response.Headers.Add("Content-Type", "text/event-stream");
 
-        Stream? stream = null;
+        await using var writer = new StreamWriter(response.Body);
 
         if (conversationRequest.EngineName.Equals("openai", StringComparison.OrdinalIgnoreCase))
         {
-            string model = string.IsNullOrEmpty(conversationRequest.ModelName)
-                ? _defaultOpenAiModel
-                : conversationRequest.ModelName;
-
-            stream = await _openaiService.StreamChatCompletionAsync(conversationRequest.ChatHeaderId??0, conversationRequest.Prompt, model, conversationRequest.Language, userId, CancellationToken.None);
-
-            await using var writer = new StreamWriter(response.Body);
-            using var readerStream = new StreamReader(stream);
-
-            while (!readerStream.EndOfStream)
-            {
-                var line = await readerStream.ReadLineAsync();
-                if (string.IsNullOrWhiteSpace(line))
-                    continue;
-
-                if (line.StartsWith("data: "))
+            await _openaiService.StreamChatCompletionAsync(
+                conversationRequest.ChatHeaderId ?? 0,
+                conversationRequest.Prompt,
+                conversationRequest.ModelName,
+                conversationRequest.Language,
+                userId,
+                CancellationToken.None,
+                async content =>
                 {
-                    var jsonPart = line.Substring("data: ".Length).Trim();
-
-                    if (jsonPart == "[DONE]")
-                        continue;
-
-                    try
+                    var payload = JsonSerializer.Serialize(new
                     {
-                        using var jsonDoc = JsonDocument.Parse(jsonPart);
-                        var choice = jsonDoc.RootElement.GetProperty("choices")[0];
-
-                        string responseContent = "";
-                        if (choice.TryGetProperty("delta", out var delta) && delta.TryGetProperty("content", out var contentProp) && contentProp.ValueKind == JsonValueKind.String)
-                        {
-                            responseContent = contentProp.GetString() ?? "";
-                        }
-
-                        bool isDone = choice.TryGetProperty("finish_reason", out var finishReasonProp) && finishReasonProp.ValueKind != JsonValueKind.Null;
-
-                        var streamEvent = new
-                        {
-                            model = model,
-                            created_at = DateTime.UtcNow.ToString("o"),
-                            response = responseContent,
-                            done = isDone
-                        };
-
-                        string newJsonPayload = JsonSerializer.Serialize(streamEvent);
-                        await writer.WriteAsync(newJsonPayload + "\n");
-                        await writer.FlushAsync();
-                    }
-                    catch (JsonException ex)
-                    {
-                        logger.LogWarning($"Skipping invalid JSON chunk: {jsonPart}. Error: {ex.Message}");
-                    }
-                }
-            }
+                        model = conversationRequest.ModelName,
+                        created_at = DateTime.UtcNow.ToString("o"),
+                        response = content
+                    });
+                    Console.WriteLine($"Sent line to client: {payload}");
+                    await writer.WriteLineAsync(payload);
+                    await writer.FlushAsync();
+                });
         }
         else if (conversationRequest.EngineName.Equals("ollama", StringComparison.OrdinalIgnoreCase))
         {
-            stream = await _ollamaService.StreamChatCompletionAsync(conversationRequest.ChatHeaderId??0, conversationRequest.Prompt, conversationRequest.ModelName, conversationRequest.Language, userId, CancellationToken.None);
-
-            await using var writer = new StreamWriter(response.Body);
-            using var readerStream = new StreamReader(stream);
-
-            while (!readerStream.EndOfStream)
-            {
-                var line = await readerStream.ReadLineAsync();
-                if (!string.IsNullOrWhiteSpace(line))
+            await _ollamaService.StreamChatCompletionAsync(
+                conversationRequest.ChatHeaderId ?? 0,
+                conversationRequest.Prompt,
+                conversationRequest.ModelName,
+                conversationRequest.Language,
+                userId,
+                CancellationToken.None,
+                async content =>
                 {
-                    await writer.WriteLineAsync(line);
+                    var payload = JsonSerializer.Serialize(new
+                    {
+                        model = conversationRequest.ModelName,
+                        created_at = DateTime.UtcNow.ToString("o"),
+                        response = content
+                    });
+                    await writer.WriteLineAsync(payload);
                     await writer.FlushAsync();
-                }
-            }
+
+                    
+                });
         }
         else
         {
-            logger.LogError($"Unsupported engine: {conversationRequest.EngineName}");
             var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
             await badResponse.WriteStringAsync($"Unsupported engine: {conversationRequest.EngineName}");
             return badResponse;
@@ -259,6 +228,7 @@ public class ChatFunctions
 
         return response;
     }
+
 
     [Function("LikeMessage")]
     public async Task<HttpResponseData> LikeMessage(

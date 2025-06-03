@@ -2,8 +2,11 @@
   "profiles": {
     "AzureOperationsAgents.UI.Backend": {
       "commandName": "Project",
-      "commandLineArgs": "--port 7150",
-      "launchBrowser": false
+      "commandLineArgs": "--host 0.0.0.0 --port 7150"
+    },
+    "Profile 1": {
+      "commandName": "Project",
+      "commandLineArgs": "--host 0.0.0.0 --port 7150"
     }
   }
 }

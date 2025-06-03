@@ -20,7 +20,7 @@ public class Folder
     public string? Color { get; set; } = string.Empty;
     
     [JsonProperty("parent")]
-    public int ParentId { get; set; }
+    public int? ParentId { get; set; }
     
     [JsonProperty("size")]
     public double Size { get; set; }
