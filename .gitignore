@@ -89,3 +89,10 @@ _ReSharper*/
 /ollama_data
 /AzureOperationsAgents.UI.Web/docker-composeup-log.txt
 /docker-compose-up-log.txt
+AzureOperationsAgents.UI.Backend/SQLData/*
+/src/AzureOperationsAgents.UI.Backend/SQLData/*
+tempdb*.*
+SQLData/
+/SQLData/
+*/SQLData/
+/Users/victorzaragoza/Developer/k/agentfactory/agents/AzureOperationsAgents.UI.Backend/SQLData/*

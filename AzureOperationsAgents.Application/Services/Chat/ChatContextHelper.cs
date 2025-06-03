@@ -14,6 +14,7 @@ public class ChatContextHelper
     private readonly IChatService? _chatService;
     private readonly DbContext? _dbContext;
     private readonly IQdrantService _qdrantService;
+    private readonly string _initialInstructions = "EG";
 
     public ChatContextHelper(
         IEmbeddingService embeddingService,
@@ -96,7 +97,7 @@ public class ChatContextHelper
     {
         try
         {
-            var instructions = await _instructionService.GetInstructionConfigurationAsync("DefaultInitialInstruction", cancellationToken);
+            var instructions = await _instructionService.GetInstructionConfigurationAsync(_initialInstructions, cancellationToken);
             return instructions?.Value ?? string.Empty;
         }
         catch (Exception ex)

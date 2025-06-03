@@ -1,16 +1,33 @@
 using AzureOperationsAgents.Core.Interfaces.Learning;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
-
-namespace AzureOperationsAgents.Application.Services.Learning;
+using static Qdrant.Client.Grpc.Conditions;
 
 public class QdrantService : IQdrantService
 {
-    private readonly QdrantClient _client = new("localhost:6334");
+    private readonly QdrantClient _client;
     private const string CollectionName = "user-private-embeddings";
+
+    public QdrantService()
+    {
+        _client = new QdrantClient("localhost");
+    }
 
     public async Task UpsertSnippetAsync(string userId, string chatTitle, string content, float[] embedding)
     {
+        //await _client.DeleteCollectionAsync(CollectionName, cancellationToken: default);
+        if (!await _client.CollectionExistsAsync(CollectionName, cancellationToken: default))
+        {
+            await _client.CreateCollectionAsync(
+                CollectionName,
+                new VectorParams()
+                {
+                    Size = Convert.ToUInt64(embedding.Length),
+                    Distance = Distance.Cosine
+                },
+                cancellationToken: default
+            );
+        }
         var point = new PointStruct
         {
             Id = new PointId { Uuid = Guid.NewGuid().ToString() },
@@ -25,21 +42,21 @@ public class QdrantService : IQdrantService
     }
 
     public async Task<List<(string content, float score)>> SearchRelevantSnippetsAsync(
-        string userId, float[] embedding, int topK = 5)
+       string userId, float[] embedding, int topK = 5)
     {
         var filter = new Filter
         {
             Must =
-            {
-                new Condition
-                {
-                    Field = new FieldCondition
-                    {
-                        Key = "userId",
-                        Match = new Match { Keyword = userId } // Fix: Replace 'MatchCondition' with 'Match' and use 'Keyword' property  
-                    }
-                }
-            }
+          {
+              new Condition
+              {
+                  Field = new FieldCondition
+                  {
+                      Key = "userId",
+                      Match = new Match { Keyword = userId } // Fix: Replace 'MatchCondition' with 'Match' and use 'Keyword' property  
+                  }
+              }
+          }
         };
 
         var results = await _client.SearchAsync(

@@ -71,11 +71,11 @@ public class OllamaService : IStreamChatService
             fullPromptBuilder.AppendLine("\nRelevant company knowledge:");
             fullPromptBuilder.AppendLine(string.Join("\n", embeddingSnippets));
         }
-        if (webSnippets.Any())
-        {
-            fullPromptBuilder.AppendLine("\nRelevant web search results:");
-            fullPromptBuilder.AppendLine(string.Join("\n", webSnippets));
-        }
+       if (webSnippets.Any())
+       {
+           fullPromptBuilder.AppendLine("\nRelevant web search results:");
+           fullPromptBuilder.AppendLine(string.Join("\n", webSnippets));
+       }
         fullPromptBuilder.AppendLine("\nUser query:");
         fullPromptBuilder.AppendLine(prompt);
         if (!string.IsNullOrWhiteSpace(language))
